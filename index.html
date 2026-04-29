@@ -90,6 +90,27 @@
       border-radius: 4px;
       line-height: 1.35;
     }
+    .distance-method {
+      font-size: 11px;
+      margin-top: 3px;
+      display: none;
+      align-items: center;
+      gap: 4px;
+    }
+    .distance-method.show { display: flex; }
+    .distance-method.real    { color: var(--success); }
+    .distance-method.approx  { color: var(--muted); }
+    .distance-method.loading { color: var(--primary); }
+    .distance-method.error   { color: #991b1b; }
+    .distance-method .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .distance-method.real .dot    { background: var(--success); }
+    .distance-method.approx .dot  { background: var(--muted); }
+    .distance-method.loading .dot { background: var(--primary); animation: pulse 1s infinite; }
+    .distance-method.error .dot   { background: #991b1b; }
+    @keyframes pulse { 0%,100% {opacity:1} 50% {opacity:0.3} }
     .field select,
     .field input {
       width: 100%;
@@ -589,6 +610,10 @@
           <div class="field">
             <label for="distance">Cự ly (km)</label>
             <input type="number" id="distance" min="0" step="1" placeholder="VD: 50" />
+            <div class="distance-method" id="distanceMethod">
+              <span class="dot"></span>
+              <span class="text"></span>
+            </div>
           </div>
           <div class="field">
             <label for="origin">Điểm xuất (mỏ / cảng)</label>
@@ -1589,17 +1614,68 @@
                 Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
       return 2 * R * Math.asin(Math.sqrt(a));
     }
-    // Hệ số cự ly thực tế / cự ly chim bay theo phương thức
     const modeDistMul = { land: 1.30, river: 1.15, ocean: 1.00 };
 
-    function tryAutoFillDistance() {
+    // Cache kết quả OSRM theo cặp toạ độ
+    const routeCache = new Map();
+
+    async function osrmRouteKm(lat1, lon1, lat2, lon2) {
+      const key = `${lat1},${lon1}|${lat2},${lon2}`;
+      if (routeCache.has(key)) return routeCache.get(key);
+      const url = `https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=false`;
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.code === 'Ok' && data.routes && data.routes[0]) {
+          const km = data.routes[0].distance / 1000;
+          routeCache.set(key, km);
+          return km;
+        }
+      } catch (e) { /* lỗi mạng → fallback */ }
+      return null;
+    }
+
+    function setDistanceMethod(cls, txt) {
+      const el = $('distanceMethod');
+      el.className = 'distance-method show ' + cls;
+      el.querySelector('.text').textContent = txt;
+    }
+    function hideDistanceMethod() {
+      $('distanceMethod').className = 'distance-method';
+    }
+
+    async function tryAutoFillDistance() {
       const oc = state.originCoords, dc = state.destinationCoords;
-      if (!oc || !dc || !state.mode) return;
-      if (state.distanceManual) return; // user đã đè thì không ghi đè
-      const km = haversineKm(oc.lat, oc.lon, dc.lat, dc.lon);
-      const adj = Math.max(1, Math.round(km * (modeDistMul[state.mode] || 1)));
-      $('distance').value = adj;
-      state.distance = String(adj);
+      if (!oc || !dc || !state.mode) { hideDistanceMethod(); return; }
+      if (state.distanceManual) return;
+
+      if (state.mode === 'land') {
+        setDistanceMethod('loading', 'Đang tính tuyến đường bộ thực (OSRM)...');
+        const km = await osrmRouteKm(oc.lat, oc.lon, dc.lat, dc.lon);
+        // Nếu user đã sửa tay trong lúc gọi API → bỏ
+        if (state.distanceManual) return;
+        if (km != null) {
+          const adj = Math.max(1, Math.round(km));
+          $('distance').value = adj;
+          state.distance = String(adj);
+          setDistanceMethod('real', `Tuyến đường bộ thực qua OSRM (${fmtN(adj)} km)`);
+        } else {
+          // Fallback Haversine × 1.3
+          const km2 = haversineKm(oc.lat, oc.lon, dc.lat, dc.lon);
+          const adj = Math.max(1, Math.round(km2 * modeDistMul.land));
+          $('distance').value = adj;
+          state.distance = String(adj);
+          setDistanceMethod('error', `OSRM lỗi — dùng đường chim bay × 1.3 (${fmtN(adj)} km)`);
+        }
+      } else {
+        const km  = haversineKm(oc.lat, oc.lon, dc.lat, dc.lon);
+        const mul = modeDistMul[state.mode] || 1;
+        const adj = Math.max(1, Math.round(km * mul));
+        $('distance').value = adj;
+        state.distance = String(adj);
+        const desc = state.mode === 'river' ? 'sông' : 'biển';
+        setDistanceMethod('approx', `Đường chim bay × ${mul} cho đường ${desc} (${fmtN(adj)} km)`);
+      }
       refreshSummary();
     }
 
@@ -1796,6 +1872,7 @@
     $('distance').addEventListener('input',    (e) => {
       state.distance = e.target.value;
       state.distanceManual = true;
+      hideDistanceMethod();
       refreshSummary();
     });
 
