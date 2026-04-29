@@ -14,6 +14,7 @@
       --text: #0f172a;
       --muted: #64748b;
       --accent: #fef3c7;
+      --success: #15803d;
     }
     * { box-sizing: border-box; }
     body {
@@ -33,7 +34,7 @@
     header p { margin: 4px 0 0; font-size: 14px; opacity: 0.9; }
 
     .container {
-      max-width: 1100px;
+      max-width: 1200px;
       margin: 32px auto;
       padding: 0 24px;
       display: grid;
@@ -50,7 +51,9 @@
       border-radius: 12px;
       padding: 24px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      margin-bottom: 24px;
     }
+    .card:last-child { margin-bottom: 0; }
     .card h2 {
       margin: 0 0 16px;
       font-size: 16px;
@@ -78,6 +81,11 @@
       margin-bottom: 6px;
       color: var(--text);
     }
+    .field .hint {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
     .field select,
     .field input {
       width: 100%;
@@ -101,6 +109,10 @@
       cursor: not-allowed;
     }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    @media (max-width: 600px) {
+      .row-3 { grid-template-columns: 1fr; }
+    }
 
     .transport-modes {
       display: grid;
@@ -128,6 +140,25 @@
     }
     .mode-icon { font-size: 20px; display: block; margin-bottom: 4px; }
 
+    .calc-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 8px;
+    }
+    .calc-btn:hover { background: var(--primary-dark); }
+    .calc-btn:disabled {
+      background: #cbd5e1;
+      cursor: not-allowed;
+    }
+
     .summary { position: sticky; top: 24px; }
     .summary-row {
       display: flex;
@@ -138,7 +169,7 @@
     }
     .summary-row:last-child { border-bottom: none; }
     .summary-row .label { color: var(--muted); }
-    .summary-row .value { font-weight: 500; }
+    .summary-row .value { font-weight: 500; text-align: right; max-width: 60%; }
     .summary-row.empty .value { color: #cbd5e1; font-style: italic; }
 
     .total-box {
@@ -160,11 +191,86 @@
       color: var(--primary-dark);
       margin-top: 4px;
     }
+    .total-box .unit-amount {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* Result breakdown */
+    .breakdown { display: none; }
+    .breakdown.show { display: block; }
+    .breakdown-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .breakdown-row:last-child { border-bottom: none; }
+    .breakdown-row .label { color: var(--text); }
+    .breakdown-row .formula { font-size: 11px; color: var(--muted); display: block; margin-top: 2px; }
+    .breakdown-row .value { font-weight: 600; font-variant-numeric: tabular-nums; }
+    .breakdown-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--primary);
+      margin: 16px 0 8px;
+      padding-top: 12px;
+      border-top: 2px solid var(--primary);
+    }
+    .breakdown-section-title:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+    .breakdown-row.total {
+      font-weight: 700;
+      font-size: 15px;
+      background: #f1f5f9;
+      padding: 12px;
+      margin-top: 8px;
+      border-radius: 6px;
+      border-bottom: none;
+    }
+    .breakdown-row.grand-total {
+      font-weight: 700;
+      font-size: 16px;
+      background: var(--accent);
+      color: var(--primary-dark);
+      padding: 14px;
+      margin-top: 12px;
+      border-radius: 8px;
+      border-bottom: none;
+    }
+
+    .alert {
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .alert.show { display: block; }
+    .alert.error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
     .note {
       font-size: 12px;
       color: var(--muted);
       margin-top: 12px;
       font-style: italic;
+    }
+
+    .input-prefix {
+      position: relative;
+    }
+    .input-prefix input { padding-right: 40px; }
+    .input-prefix .suffix {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12px;
+      color: var(--muted);
+      pointer-events: none;
     }
   </style>
 </head>
@@ -175,124 +281,326 @@
   </header>
 
   <div class="container">
-    <!-- LEFT: FORM -->
-    <div class="card">
-      <h2>Thông tin hợp đồng</h2>
+    <!-- LEFT COLUMN -->
+    <div>
+      <!-- CARD 1: CONTRACT INFO -->
+      <div class="card">
+        <h2>Thông tin hợp đồng</h2>
 
-      <!-- 1. MATERIAL -->
-      <div class="section">
-        <div class="section-title">1. Loại vật liệu</div>
-        <div class="row">
-          <div class="field">
-            <label for="material">Nhóm vật liệu</label>
-            <select id="material">
-              <option value="">— Chọn nhóm —</option>
-              <option value="sand">Cát (Sand)</option>
-              <option value="rock">Đá (Rock)</option>
-              <option value="soil">Đất (Soil)</option>
-            </select>
+        <!-- 1. MATERIAL -->
+        <div class="section">
+          <div class="section-title">1. Loại vật liệu</div>
+          <div class="row">
+            <div class="field">
+              <label for="material">Nhóm vật liệu</label>
+              <select id="material">
+                <option value="">— Chọn nhóm —</option>
+                <option value="sand">Cát (Sand)</option>
+                <option value="rock">Đá (Rock)</option>
+                <option value="soil">Đất (Soil)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="subMaterial">Loại cụ thể</label>
+              <select id="subMaterial" disabled>
+                <option value="">— Chọn nhóm trước —</option>
+              </select>
+            </div>
           </div>
-          <div class="field">
-            <label for="subMaterial">Loại cụ thể</label>
-            <select id="subMaterial" disabled>
-              <option value="">— Chọn nhóm trước —</option>
-            </select>
+          <div class="row">
+            <div class="field">
+              <label for="quantity">Khối lượng</label>
+              <input type="number" id="quantity" min="0" step="1" placeholder="VD: 1000" />
+            </div>
+            <div class="field">
+              <label for="unit">Đơn vị</label>
+              <select id="unit">
+                <option value="m3">m³</option>
+                <option value="ton">Tấn</option>
+              </select>
+            </div>
           </div>
         </div>
-        <div class="row">
+
+        <!-- 2. TRANSPORT -->
+        <div class="section">
+          <div class="section-title">2. Phương thức vận chuyển</div>
+          <div class="transport-modes">
+            <div class="mode-btn" data-mode="land">
+              <span class="mode-icon">🚛</span>
+              Đường bộ
+            </div>
+            <div class="mode-btn" data-mode="river">
+              <span class="mode-icon">⛵</span>
+              Đường sông
+            </div>
+            <div class="mode-btn" data-mode="ocean">
+              <span class="mode-icon">🚢</span>
+              Đường biển
+            </div>
+          </div>
+
           <div class="field">
-            <label for="quantity">Khối lượng</label>
-            <input type="number" id="quantity" min="0" step="1" placeholder="VD: 1000" />
+            <label for="subTransport">Loại phương tiện</label>
+            <select id="subTransport" disabled>
+              <option value="">— Chọn phương thức trước —</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="distance">Cự ly (km)</label>
+              <input type="number" id="distance" min="0" step="1" placeholder="VD: 50" />
+            </div>
+            <div class="field">
+              <label for="origin">Điểm xuất (mỏ / cảng)</label>
+              <input type="text" id="origin" placeholder="VD: Mỏ đá Kiên Lương" />
+            </div>
           </div>
           <div class="field">
-            <label for="unit">Đơn vị</label>
-            <select id="unit">
-              <option value="m3">m³</option>
-              <option value="ton">Tấn</option>
-            </select>
+            <label for="destination">Điểm đến (công trình)</label>
+            <input type="text" id="destination" placeholder="VD: Công trình KCN Long An" />
           </div>
         </div>
       </div>
 
-      <!-- 2. TRANSPORT -->
-      <div class="section">
-        <div class="section-title">2. Phương thức vận chuyển</div>
-        <div class="transport-modes">
-          <div class="mode-btn" data-mode="land">
-            <span class="mode-icon">🚛</span>
-            Đường bộ
-          </div>
-          <div class="mode-btn" data-mode="river">
-            <span class="mode-icon">⛵</span>
-            Đường sông
-          </div>
-          <div class="mode-btn" data-mode="ocean">
-            <span class="mode-icon">🚢</span>
-            Đường biển
+      <!-- CARD 2: COST PARAMETERS -->
+      <div class="card">
+        <h2>Tham số chi phí <span style="font-weight:400; font-size:12px; color:var(--muted)">(tự động điền theo lựa chọn — có thể chỉnh sửa)</span></h2>
+
+        <div class="section">
+          <div class="section-title">A. Chi phí tại mỏ &amp; bốc xếp</div>
+          <div class="row">
+            <div class="field">
+              <label for="minePrice">Đơn giá tại mỏ</label>
+              <div class="input-prefix">
+                <input type="number" id="minePrice" min="0" step="1000" placeholder="0" />
+                <span class="suffix">₫/m³</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="loadingFee">Phí bốc xếp</label>
+              <div class="input-prefix">
+                <input type="number" id="loadingFee" min="0" step="1000" value="15000" />
+                <span class="suffix">₫/m³</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="field">
-          <label for="subTransport">Loại phương tiện</label>
-          <select id="subTransport" disabled>
-            <option value="">— Chọn phương thức trước —</option>
-          </select>
+        <div class="section">
+          <div class="section-title">B. Vận chuyển</div>
+          <div class="row">
+            <div class="field">
+              <label for="transportRate">Cước vận chuyển</label>
+              <div class="input-prefix">
+                <input type="number" id="transportRate" min="0" step="100" placeholder="0" />
+                <span class="suffix">₫/m³/km</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="transportFixed">Phí cố định / chuyến</label>
+              <div class="input-prefix">
+                <input type="number" id="transportFixed" min="0" step="10000" value="0" />
+                <span class="suffix">₫</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="row">
-          <div class="field">
-            <label for="distance">Cự ly (km)</label>
-            <input type="number" id="distance" min="0" step="1" placeholder="VD: 50" />
-          </div>
-          <div class="field">
-            <label for="origin">Điểm xuất (mỏ / cảng)</label>
-            <input type="text" id="origin" placeholder="VD: Mỏ đá Kiên Lương" />
+        <div class="section">
+          <div class="section-title">C. Thuế &amp; phí</div>
+          <div class="row-3">
+            <div class="field">
+              <label for="resourceTax">Thuế tài nguyên</label>
+              <div class="input-prefix">
+                <input type="number" id="resourceTax" min="0" step="0.5" value="10" />
+                <span class="suffix">%</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="envFee">Phí môi trường</label>
+              <div class="input-prefix">
+                <input type="number" id="envFee" min="0" step="500" value="3000" />
+                <span class="suffix">₫/m³</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="vat">VAT</label>
+              <div class="input-prefix">
+                <input type="number" id="vat" min="0" step="0.5" value="10" />
+                <span class="suffix">%</span>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="field">
-          <label for="destination">Điểm đến (công trình)</label>
-          <input type="text" id="destination" placeholder="VD: Công trình KCN Long An" />
+
+        <div class="section">
+          <div class="section-title">D. Hoa hồng, hao hụt &amp; lợi nhuận</div>
+          <div class="row-3">
+            <div class="field">
+              <label for="commission">Hoa hồng</label>
+              <div class="input-prefix">
+                <input type="number" id="commission" min="0" step="0.5" value="5" />
+                <span class="suffix">%</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="loss">Hao hụt</label>
+              <div class="input-prefix">
+                <input type="number" id="loss" min="0" step="0.5" value="3" />
+                <span class="suffix">%</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="margin">Lợi nhuận mục tiêu</label>
+              <div class="input-prefix">
+                <input type="number" id="margin" min="0" step="0.5" value="12" />
+                <span class="suffix">%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="errorAlert" class="alert error"></div>
+
+        <button class="calc-btn" id="calcBtn">Tính chi phí ước tính</button>
+        <div class="note">* Đơn giá mặc định là tham khảo thị trường. Vui lòng cập nhật theo hợp đồng/báo giá thực tế.</div>
+      </div>
+
+      <!-- CARD 3: BREAKDOWN RESULT -->
+      <div class="card breakdown" id="breakdownCard">
+        <h2>Bảng phân tích chi phí chi tiết</h2>
+
+        <div class="breakdown-section-title">A. Chi phí tại mỏ</div>
+        <div class="breakdown-row">
+          <span class="label">Đơn giá tại mỏ
+            <span class="formula" id="f-mine"></span>
+          </span>
+          <span class="value" id="b-mine">—</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="label">Thuế tài nguyên
+            <span class="formula" id="f-tax"></span>
+          </span>
+          <span class="value" id="b-tax">—</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="label">Phí bảo vệ môi trường
+            <span class="formula" id="f-env"></span>
+          </span>
+          <span class="value" id="b-env">—</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="label">Phí bốc xếp tại mỏ
+            <span class="formula" id="f-loading"></span>
+          </span>
+          <span class="value" id="b-loading">—</span>
+        </div>
+        <div class="breakdown-row total">
+          <span class="label">Tổng chi phí tại mỏ</span>
+          <span class="value" id="b-mine-total">—</span>
+        </div>
+
+        <div class="breakdown-section-title">B. Chi phí vận chuyển</div>
+        <div class="breakdown-row">
+          <span class="label">Cước vận chuyển
+            <span class="formula" id="f-transport"></span>
+          </span>
+          <span class="value" id="b-transport">—</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="label">Phí cố định / chuyến
+            <span class="formula" id="f-transport-fixed"></span>
+          </span>
+          <span class="value" id="b-transport-fixed">—</span>
+        </div>
+        <div class="breakdown-row total">
+          <span class="label">Tổng chi phí vận chuyển</span>
+          <span class="value" id="b-transport-total">—</span>
+        </div>
+
+        <div class="breakdown-section-title">C. Chi phí khác &amp; lợi nhuận</div>
+        <div class="breakdown-row">
+          <span class="label">Hao hụt
+            <span class="formula" id="f-loss"></span>
+          </span>
+          <span class="value" id="b-loss">—</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="label">Hoa hồng
+            <span class="formula" id="f-commission"></span>
+          </span>
+          <span class="value" id="b-commission">—</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="label">Lợi nhuận mục tiêu
+            <span class="formula" id="f-margin"></span>
+          </span>
+          <span class="value" id="b-margin">—</span>
+        </div>
+
+        <div class="breakdown-section-title">D. Tổng cộng</div>
+        <div class="breakdown-row total">
+          <span class="label">Giá trước VAT</span>
+          <span class="value" id="b-pre-vat">—</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="label">VAT
+            <span class="formula" id="f-vat"></span>
+          </span>
+          <span class="value" id="b-vat">—</span>
+        </div>
+        <div class="breakdown-row grand-total">
+          <span class="label">TỔNG GIÁ TRỊ HỢP ĐỒNG</span>
+          <span class="value" id="b-grand-total">—</span>
+        </div>
+        <div class="breakdown-row" style="margin-top:8px;">
+          <span class="label">Đơn giá bán bình quân</span>
+          <span class="value" id="b-unit-price">—</span>
         </div>
       </div>
     </div>
 
     <!-- RIGHT: SUMMARY -->
-    <div class="card summary">
-      <h2>Tóm tắt lựa chọn</h2>
-      <div class="summary-row empty" id="row-material">
-        <span class="label">Vật liệu</span>
-        <span class="value">Chưa chọn</span>
-      </div>
-      <div class="summary-row empty" id="row-subMaterial">
-        <span class="label">Loại cụ thể</span>
-        <span class="value">Chưa chọn</span>
-      </div>
-      <div class="summary-row empty" id="row-quantity">
-        <span class="label">Khối lượng</span>
-        <span class="value">Chưa nhập</span>
-      </div>
-      <div class="summary-row empty" id="row-mode">
-        <span class="label">Phương thức</span>
-        <span class="value">Chưa chọn</span>
-      </div>
-      <div class="summary-row empty" id="row-subTransport">
-        <span class="label">Phương tiện</span>
-        <span class="value">Chưa chọn</span>
-      </div>
-      <div class="summary-row empty" id="row-distance">
-        <span class="label">Cự ly</span>
-        <span class="value">Chưa nhập</span>
-      </div>
-      <div class="summary-row empty" id="row-route">
-        <span class="label">Tuyến</span>
-        <span class="value">Chưa nhập</span>
-      </div>
+    <div>
+      <div class="card summary">
+        <h2>Tóm tắt lựa chọn</h2>
+        <div class="summary-row empty" id="row-material">
+          <span class="label">Vật liệu</span>
+          <span class="value">Chưa chọn</span>
+        </div>
+        <div class="summary-row empty" id="row-subMaterial">
+          <span class="label">Loại cụ thể</span>
+          <span class="value">Chưa chọn</span>
+        </div>
+        <div class="summary-row empty" id="row-quantity">
+          <span class="label">Khối lượng</span>
+          <span class="value">Chưa nhập</span>
+        </div>
+        <div class="summary-row empty" id="row-mode">
+          <span class="label">Phương thức</span>
+          <span class="value">Chưa chọn</span>
+        </div>
+        <div class="summary-row empty" id="row-subTransport">
+          <span class="label">Phương tiện</span>
+          <span class="value">Chưa chọn</span>
+        </div>
+        <div class="summary-row empty" id="row-distance">
+          <span class="label">Cự ly</span>
+          <span class="value">Chưa nhập</span>
+        </div>
+        <div class="summary-row empty" id="row-route">
+          <span class="label">Tuyến</span>
+          <span class="value">Chưa nhập</span>
+        </div>
 
-      <div class="total-box">
-        <div class="label">Chi phí ước tính</div>
-        <div class="amount" id="total">— ₫</div>
+        <div class="total-box">
+          <div class="label">Tổng giá trị hợp đồng</div>
+          <div class="amount" id="total">— ₫</div>
+          <div class="unit-amount" id="unit-total"></div>
+        </div>
       </div>
-      <div class="note">* Bước này chỉ hiển thị lựa chọn. Logic tính giá chi tiết sẽ được bổ sung ở bước tiếp theo.</div>
     </div>
   </div>
 
@@ -300,61 +608,59 @@
     // ---- DỮ LIỆU DANH MỤC ----
     const subMaterials = {
       sand: [
-        { value: 'cat-song-tho',   label: 'Cát sông thô (Mđl 2.0–3.3) — bê tông' },
-        { value: 'cat-song-vua',   label: 'Cát sông vừa (Mđl 1.5–2.0) — xây/tô' },
-        { value: 'cat-song-min',   label: 'Cát sông mịn (Mđl 0.7–1.5)' },
-        { value: 'cat-bien',       label: 'Cát biển (đã rửa mặn)' },
-        { value: 'cat-nghien',     label: 'Cát nghiền (manufactured sand)' },
-        { value: 'cat-san-lap',    label: 'Cát san lấp' }
+        { value: 'cat-song-tho',   label: 'Cát sông thô (Mđl 2.0–3.3) — bê tông', defaultPrice: 380000 },
+        { value: 'cat-song-vua',   label: 'Cát sông vừa (Mđl 1.5–2.0) — xây/tô',  defaultPrice: 300000 },
+        { value: 'cat-song-min',   label: 'Cát sông mịn (Mđl 0.7–1.5)',            defaultPrice: 220000 },
+        { value: 'cat-bien',       label: 'Cát biển (đã rửa mặn)',                 defaultPrice: 180000 },
+        { value: 'cat-nghien',     label: 'Cát nghiền (manufactured sand)',        defaultPrice: 280000 },
+        { value: 'cat-san-lap',    label: 'Cát san lấp',                           defaultPrice: 95000  }
       ],
       rock: [
-        { value: 'da-1x2',         label: 'Đá 1×2 (10–25 mm) — bê tông' },
-        { value: 'da-2x4',         label: 'Đá 2×4 (20–40 mm)' },
-        { value: 'da-4x6',         label: 'Đá 4×6 (40–60 mm)' },
-        { value: 'da-5x7',         label: 'Đá 5×7' },
-        { value: 'da-mi-sang',     label: 'Đá mi sàng (5–10 mm)' },
-        { value: 'da-mi-bui',      label: 'Đá mi bụi / mạt (0–5 mm)' },
-        { value: 'da-hoc',         label: 'Đá hộc (rip-rap, 150–300 mm)' },
-        { value: 'da-cap-phoi',    label: 'Đá cấp phối (graded base 0–37.5 mm)' }
+        { value: 'da-1x2',         label: 'Đá 1×2 (10–25 mm) — bê tông',           defaultPrice: 320000 },
+        { value: 'da-2x4',         label: 'Đá 2×4 (20–40 mm)',                     defaultPrice: 250000 },
+        { value: 'da-4x6',         label: 'Đá 4×6 (40–60 mm)',                     defaultPrice: 200000 },
+        { value: 'da-5x7',         label: 'Đá 5×7',                                 defaultPrice: 190000 },
+        { value: 'da-mi-sang',     label: 'Đá mi sàng (5–10 mm)',                  defaultPrice: 230000 },
+        { value: 'da-mi-bui',      label: 'Đá mi bụi / mạt (0–5 mm)',              defaultPrice: 130000 },
+        { value: 'da-hoc',         label: 'Đá hộc (rip-rap, 150–300 mm)',          defaultPrice: 170000 },
+        { value: 'da-cap-phoi',    label: 'Đá cấp phối (graded base 0–37.5 mm)',   defaultPrice: 220000 }
       ],
       soil: [
-        { value: 'dat-san-lap',    label: 'Đất san lấp' },
-        { value: 'dat-dap-k95',    label: 'Đất đắp nền K95' },
-        { value: 'dat-dap-k98',    label: 'Đất đắp nền K98' },
-        { value: 'dat-doi',        label: 'Đất đồi / phong hóa' },
-        { value: 'dat-set',        label: 'Đất sét' },
-        { value: 'dat-pha-cat',    label: 'Đất pha cát' }
+        { value: 'dat-san-lap',    label: 'Đất san lấp',                           defaultPrice: 60000  },
+        { value: 'dat-dap-k95',    label: 'Đất đắp nền K95',                       defaultPrice: 90000  },
+        { value: 'dat-dap-k98',    label: 'Đất đắp nền K98',                       defaultPrice: 110000 },
+        { value: 'dat-doi',        label: 'Đất đồi / phong hóa',                   defaultPrice: 70000  },
+        { value: 'dat-set',        label: 'Đất sét',                               defaultPrice: 80000  },
+        { value: 'dat-pha-cat',    label: 'Đất pha cát',                           defaultPrice: 85000  }
       ]
     };
 
+    // Cước vận chuyển mặc định (₫/m³/km) — tham khảo thị trường VN
     const subTransports = {
       land: [
-        { value: 'truck-5t',   label: 'Xe tải 5 tấn' },
-        { value: 'truck-10t',  label: 'Xe tải 10 tấn' },
-        { value: 'truck-15t',  label: 'Xe tải 15 tấn' },
-        { value: 'truck-20t',  label: 'Xe tải 20 tấn' },
-        { value: 'truck-25t',  label: 'Xe tải 25 tấn' }
+        { value: 'truck-5t',   label: 'Xe tải 5 tấn',  defaultRate: 4500, defaultFixed: 200000 },
+        { value: 'truck-10t',  label: 'Xe tải 10 tấn', defaultRate: 3200, defaultFixed: 300000 },
+        { value: 'truck-15t',  label: 'Xe tải 15 tấn', defaultRate: 2800, defaultFixed: 400000 },
+        { value: 'truck-20t',  label: 'Xe tải 20 tấn', defaultRate: 2400, defaultFixed: 500000 },
+        { value: 'truck-25t',  label: 'Xe tải 25 tấn', defaultRate: 2100, defaultFixed: 600000 }
       ],
       river: [
-        { value: 'barge-200t',   label: 'Sà lan 200 tấn' },
-        { value: 'barge-500t',   label: 'Sà lan 500 tấn' },
-        { value: 'barge-800t',   label: 'Sà lan 800 tấn' },
-        { value: 'barge-1500t',  label: 'Sà lan 1.500 tấn' }
+        { value: 'barge-200t',   label: 'Sà lan 200 tấn',   defaultRate: 900, defaultFixed: 1500000 },
+        { value: 'barge-500t',   label: 'Sà lan 500 tấn',   defaultRate: 650, defaultFixed: 2500000 },
+        { value: 'barge-800t',   label: 'Sà lan 800 tấn',   defaultRate: 550, defaultFixed: 3500000 },
+        { value: 'barge-1500t',  label: 'Sà lan 1.500 tấn', defaultRate: 450, defaultFixed: 5000000 }
       ],
       ocean: [
-        { value: 'ship-3000dwt',  label: 'Tàu biển 3.000 DWT' },
-        { value: 'ship-5000dwt',  label: 'Tàu biển 5.000 DWT' },
-        { value: 'ship-8000dwt',  label: 'Tàu biển 8.000 DWT' },
-        { value: 'ship-12000dwt', label: 'Tàu biển 12.000 DWT' },
-        { value: 'ship-20000dwt', label: 'Tàu biển 20.000 DWT' }
+        { value: 'ship-3000dwt',  label: 'Tàu biển 3.000 DWT',  defaultRate: 400, defaultFixed: 15000000 },
+        { value: 'ship-5000dwt',  label: 'Tàu biển 5.000 DWT',  defaultRate: 320, defaultFixed: 25000000 },
+        { value: 'ship-8000dwt',  label: 'Tàu biển 8.000 DWT',  defaultRate: 260, defaultFixed: 35000000 },
+        { value: 'ship-12000dwt', label: 'Tàu biển 12.000 DWT', defaultRate: 220, defaultFixed: 50000000 },
+        { value: 'ship-20000dwt', label: 'Tàu biển 20.000 DWT', defaultRate: 180, defaultFixed: 75000000 }
       ]
     };
 
-    const modeLabels = {
-      land:  'Đường bộ',
-      river: 'Đường sông',
-      ocean: 'Đường biển'
-    };
+    const modeLabels = { land: 'Đường bộ', river: 'Đường sông', ocean: 'Đường biển' };
+    const matLabels  = { sand: 'Cát', rock: 'Đá', soil: 'Đất' };
 
     // ---- TRẠNG THÁI ----
     const state = {
@@ -366,6 +672,8 @@
 
     // ---- HÀM HỖ TRỢ ----
     const $ = (id) => document.getElementById(id);
+    const fmt = (n) => Number(n || 0).toLocaleString('vi-VN', { maximumFractionDigits: 0 }) + ' ₫';
+    const fmtN = (n) => Number(n || 0).toLocaleString('vi-VN', { maximumFractionDigits: 0 });
 
     function fillSelect(selectEl, items, placeholder) {
       selectEl.innerHTML = `<option value="">${placeholder}</option>` +
@@ -376,42 +684,23 @@
     function setRow(id, label, value, hasValue) {
       const row = $(id);
       row.querySelector('.label').textContent = label;
-      row.querySelector('.value').textContent = hasValue ? value : (value || 'Chưa chọn');
+      row.querySelector('.value').textContent = hasValue ? value : 'Chưa chọn';
       row.classList.toggle('empty', !hasValue);
     }
 
-    function getLabel(items, value) {
-      const f = items.find(i => i.value === value);
-      return f ? f.label : '';
+    function findItem(items, value) {
+      return (items || []).find(i => i.value === value);
     }
 
     function refreshSummary() {
-      setRow('row-material', 'Vật liệu',
-        state.material ? ({ sand: 'Cát', rock: 'Đá', soil: 'Đất' }[state.material]) : '',
-        !!state.material);
-
-      setRow('row-subMaterial', 'Loại cụ thể',
-        state.subMaterial ? getLabel(subMaterials[state.material] || [], state.subMaterial) : '',
-        !!state.subMaterial);
-
-      setRow('row-quantity', 'Khối lượng',
-        state.quantity ? `${Number(state.quantity).toLocaleString('vi-VN')} ${state.unit === 'm3' ? 'm³' : 'tấn'}` : '',
-        !!state.quantity);
-
-      setRow('row-mode', 'Phương thức',
-        state.mode ? modeLabels[state.mode] : '',
-        !!state.mode);
-
-      setRow('row-subTransport', 'Phương tiện',
-        state.subTransport ? getLabel(subTransports[state.mode] || [], state.subTransport) : '',
-        !!state.subTransport);
-
-      setRow('row-distance', 'Cự ly',
-        state.distance ? `${Number(state.distance).toLocaleString('vi-VN')} km` : '',
-        !!state.distance);
-
+      setRow('row-material',     'Vật liệu',      state.material ? matLabels[state.material] : '',                        !!state.material);
+      setRow('row-subMaterial',  'Loại cụ thể',   findItem(subMaterials[state.material], state.subMaterial)?.label || '', !!state.subMaterial);
+      setRow('row-quantity',     'Khối lượng',    state.quantity ? `${fmtN(state.quantity)} ${state.unit === 'm3' ? 'm³' : 'tấn'}` : '', !!state.quantity);
+      setRow('row-mode',         'Phương thức',   state.mode ? modeLabels[state.mode] : '',                                !!state.mode);
+      setRow('row-subTransport', 'Phương tiện',   findItem(subTransports[state.mode], state.subTransport)?.label || '',    !!state.subTransport);
+      setRow('row-distance',     'Cự ly',         state.distance ? `${fmtN(state.distance)} km` : '',                      !!state.distance);
       const route = [state.origin, state.destination].filter(Boolean).join(' → ');
-      setRow('row-route', 'Tuyến', route, !!route);
+      setRow('row-route',        'Tuyến',         route, !!route);
     }
 
     // ---- BIND EVENTS ----
@@ -425,55 +714,150 @@
         sub.disabled = true;
       }
       state.subMaterial = '';
+      $('minePrice').value = '';
       refreshSummary();
     });
 
     $('subMaterial').addEventListener('change', (e) => {
       state.subMaterial = e.target.value;
+      const item = findItem(subMaterials[state.material], state.subMaterial);
+      if (item) $('minePrice').value = item.defaultPrice;
       refreshSummary();
     });
 
-    $('quantity').addEventListener('input', (e) => {
-      state.quantity = e.target.value;
-      refreshSummary();
-    });
-
-    $('unit').addEventListener('change', (e) => {
-      state.unit = e.target.value;
-      refreshSummary();
-    });
+    $('quantity').addEventListener('input', (e) => { state.quantity = e.target.value; refreshSummary(); });
+    $('unit').addEventListener('change',   (e) => { state.unit = e.target.value;     refreshSummary(); });
 
     document.querySelectorAll('.mode-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         state.mode = btn.dataset.mode;
-        const sub = $('subTransport');
-        fillSelect(sub, subTransports[state.mode], '— Chọn phương tiện —');
+        fillSelect($('subTransport'), subTransports[state.mode], '— Chọn phương tiện —');
         state.subTransport = '';
+        $('transportRate').value = '';
+        $('transportFixed').value = 0;
         refreshSummary();
       });
     });
 
     $('subTransport').addEventListener('change', (e) => {
       state.subTransport = e.target.value;
+      const item = findItem(subTransports[state.mode], state.subTransport);
+      if (item) {
+        $('transportRate').value = item.defaultRate;
+        $('transportFixed').value = item.defaultFixed;
+      }
       refreshSummary();
     });
 
-    $('distance').addEventListener('input', (e) => {
-      state.distance = e.target.value;
-      refreshSummary();
-    });
+    $('distance').addEventListener('input',    (e) => { state.distance = e.target.value;    refreshSummary(); });
+    $('origin').addEventListener('input',      (e) => { state.origin = e.target.value;      refreshSummary(); });
+    $('destination').addEventListener('input', (e) => { state.destination = e.target.value; refreshSummary(); });
 
-    $('origin').addEventListener('input', (e) => {
-      state.origin = e.target.value;
-      refreshSummary();
-    });
+    // ---- TÍNH CHI PHÍ ----
+    function showError(msg) {
+      const el = $('errorAlert');
+      el.textContent = msg;
+      el.classList.add('show');
+    }
+    function clearError() { $('errorAlert').classList.remove('show'); }
 
-    $('destination').addEventListener('input', (e) => {
-      state.destination = e.target.value;
-      refreshSummary();
-    });
+    function calculate() {
+      clearError();
+
+      const qty       = parseFloat(state.quantity) || 0;
+      const distance  = parseFloat(state.distance) || 0;
+      const minePrice = parseFloat($('minePrice').value)      || 0;
+      const loadFee   = parseFloat($('loadingFee').value)     || 0;
+      const trRate    = parseFloat($('transportRate').value)  || 0;
+      const trFixed   = parseFloat($('transportFixed').value) || 0;
+      const taxPct    = parseFloat($('resourceTax').value)    || 0;
+      const envFee    = parseFloat($('envFee').value)         || 0;
+      const vatPct    = parseFloat($('vat').value)            || 0;
+      const commPct   = parseFloat($('commission').value)     || 0;
+      const lossPct   = parseFloat($('loss').value)           || 0;
+      const marginPct = parseFloat($('margin').value)         || 0;
+
+      // Validate
+      const errs = [];
+      if (!state.material || !state.subMaterial) errs.push('Chọn loại vật liệu');
+      if (qty <= 0)                              errs.push('Nhập khối lượng');
+      if (!state.mode || !state.subTransport)    errs.push('Chọn phương thức và phương tiện vận chuyển');
+      if (distance <= 0)                         errs.push('Nhập cự ly vận chuyển');
+      if (minePrice <= 0)                        errs.push('Nhập đơn giá tại mỏ');
+      if (errs.length) {
+        showError('Vui lòng: ' + errs.join('; ') + '.');
+        $('breakdownCard').classList.remove('show');
+        $('total').textContent = '— ₫';
+        $('unit-total').textContent = '';
+        return;
+      }
+
+      // ---- A. Chi phí tại mỏ ----
+      const mineCost    = qty * minePrice;
+      const taxCost     = mineCost * taxPct / 100;
+      const envCost     = qty * envFee;
+      const loadingCost = qty * loadFee;
+      const mineTotal   = mineCost + taxCost + envCost + loadingCost;
+
+      // ---- B. Chi phí vận chuyển ----
+      const transportVar   = qty * distance * trRate;
+      const transportFixed = trFixed; // 1 chuyến (đơn giản hóa cho v1)
+      const transportTotal = transportVar + transportFixed;
+
+      // ---- C. Hao hụt + Hoa hồng + Lợi nhuận ----
+      const baseCost       = mineTotal + transportTotal;
+      const lossCost       = baseCost * lossPct / 100;
+      const commissionCost = baseCost * commPct / 100;
+      const marginCost     = baseCost * marginPct / 100;
+
+      // ---- D. Tổng ----
+      const preVat     = baseCost + lossCost + commissionCost + marginCost;
+      const vatCost    = preVat * vatPct / 100;
+      const grandTotal = preVat + vatCost;
+      const unitPrice  = grandTotal / qty;
+
+      // ---- HIỂN THỊ ----
+      const u = state.unit === 'm3' ? 'm³' : 'tấn';
+
+      $('f-mine').textContent           = `${fmtN(qty)} ${u} × ${fmt(minePrice)}/${u}`;
+      $('b-mine').textContent           = fmt(mineCost);
+      $('f-tax').textContent            = `${taxPct}% × giá tại mỏ`;
+      $('b-tax').textContent            = fmt(taxCost);
+      $('f-env').textContent            = `${fmtN(qty)} ${u} × ${fmt(envFee)}/${u}`;
+      $('b-env').textContent            = fmt(envCost);
+      $('f-loading').textContent        = `${fmtN(qty)} ${u} × ${fmt(loadFee)}/${u}`;
+      $('b-loading').textContent        = fmt(loadingCost);
+      $('b-mine-total').textContent     = fmt(mineTotal);
+
+      $('f-transport').textContent      = `${fmtN(qty)} ${u} × ${fmtN(distance)} km × ${fmt(trRate)}/${u}/km`;
+      $('b-transport').textContent      = fmt(transportVar);
+      $('f-transport-fixed').textContent= `Phí cố định cho phương tiện ${findItem(subTransports[state.mode], state.subTransport)?.label || ''}`;
+      $('b-transport-fixed').textContent= fmt(transportFixed);
+      $('b-transport-total').textContent= fmt(transportTotal);
+
+      $('f-loss').textContent           = `${lossPct}% × (chi phí tại mỏ + vận chuyển)`;
+      $('b-loss').textContent           = fmt(lossCost);
+      $('f-commission').textContent     = `${commPct}% × (chi phí tại mỏ + vận chuyển)`;
+      $('b-commission').textContent     = fmt(commissionCost);
+      $('f-margin').textContent         = `${marginPct}% × (chi phí tại mỏ + vận chuyển)`;
+      $('b-margin').textContent         = fmt(marginCost);
+
+      $('b-pre-vat').textContent        = fmt(preVat);
+      $('f-vat').textContent            = `${vatPct}% × giá trước VAT`;
+      $('b-vat').textContent            = fmt(vatCost);
+      $('b-grand-total').textContent    = fmt(grandTotal);
+      $('b-unit-price').textContent     = fmt(unitPrice) + `/${u}`;
+
+      $('total').textContent            = fmt(grandTotal);
+      $('unit-total').textContent       = `≈ ${fmt(unitPrice)}/${u}`;
+
+      $('breakdownCard').classList.add('show');
+      $('breakdownCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    $('calcBtn').addEventListener('click', calculate);
 
     refreshSummary();
   </script>
