@@ -264,6 +264,37 @@
       position: relative;
     }
     .input-prefix input { padding-right: 36px; }
+
+    /* Cost field with regional reference dropdown */
+    .cost-row { display: flex; gap: 6px; align-items: stretch; }
+    .cost-row .input-prefix { flex: 1; min-width: 0; }
+    .ref-dropdown {
+      flex: 0 0 auto;
+      width: 150px;
+      padding: 6px 6px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 11px;
+      background: #f8fafc;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .ref-dropdown:hover { border-color: var(--primary); }
+    .ref-dropdown option { color: var(--text); font-size: 12px; }
+    @media (max-width: 480px) {
+      .cost-row { flex-direction: column; }
+      .ref-dropdown { width: 100%; }
+    }
+    .region-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      background: var(--accent);
+      color: var(--primary-dark);
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 600;
+      margin-left: 6px;
+    }
     .input-prefix .suffix {
       position: absolute;
       right: 8px;
@@ -470,48 +501,53 @@
         <h2>Tham số chi phí <span style="font-weight:400; font-size:12px; color:var(--muted)">(tự động điền theo lựa chọn — có thể chỉnh sửa)</span></h2>
 
         <div class="section">
-          <div class="section-title">A. Chi phí tại mỏ &amp; bốc xếp</div>
-          <div class="row">
-            <div class="field">
-              <label for="minePrice">Đơn giá tại mỏ</label>
+          <div class="section-title">A. Chi phí tại mỏ &amp; bốc xếp <span class="region-badge" id="regionBadge" style="display:none"></span></div>
+          <div class="field">
+            <label for="minePrice">Đơn giá tại mỏ</label>
+            <div class="cost-row">
               <div class="input-prefix">
                 <input type="number" id="minePrice" min="0" step="1000" placeholder="0" />
                 <span class="suffix">₫/m³</span>
               </div>
+              <select class="ref-dropdown" id="minePriceRef"><option value="">📍 Chọn vật liệu trước</option></select>
             </div>
-            <div class="field">
-              <label for="loadingFee">Phí bốc xếp</label>
+          </div>
+          <div class="field">
+            <label for="loadingFee">Phí bốc xếp</label>
+            <div class="cost-row">
               <div class="input-prefix">
                 <input type="number" id="loadingFee" min="0" step="1000" value="15000" />
                 <span class="suffix">₫/m³</span>
               </div>
+              <select class="ref-dropdown" id="loadingFeeRef"><option value="">📍 Tham khảo vùng…</option></select>
             </div>
           </div>
         </div>
 
         <div class="section">
           <div class="section-title">B. Vận chuyển</div>
-          <div class="row">
-            <div class="field">
-              <label for="transportRate">Cước vận chuyển</label>
+          <div class="field">
+            <label for="transportRate">Cước vận chuyển</label>
+            <div class="cost-row">
               <div class="input-prefix">
                 <input type="number" id="transportRate" min="0" step="100" placeholder="0" />
                 <span class="suffix">₫/m³/km</span>
               </div>
+              <select class="ref-dropdown" id="transportRateRef"><option value="">📍 Chọn phương tiện trước</option></select>
             </div>
-            <div class="field">
-              <label for="transportFixed">Phí cố định / chuyến</label>
-              <div class="input-prefix">
-                <input type="number" id="transportFixed" min="0" step="10000" value="0" />
-                <span class="suffix">₫</span>
-              </div>
+          </div>
+          <div class="field">
+            <label for="transportFixed">Phí cố định / chuyến</label>
+            <div class="input-prefix">
+              <input type="number" id="transportFixed" min="0" step="10000" value="0" />
+              <span class="suffix">₫</span>
             </div>
           </div>
         </div>
 
         <div class="section">
           <div class="section-title">C. Thuế &amp; phí</div>
-          <div class="row-3">
+          <div class="row">
             <div class="field">
               <label for="resourceTax">Thuế tài nguyên</label>
               <div class="input-prefix">
@@ -520,18 +556,21 @@
               </div>
             </div>
             <div class="field">
-              <label for="envFee">Phí môi trường</label>
-              <div class="input-prefix">
-                <input type="number" id="envFee" min="0" step="500" value="3000" />
-                <span class="suffix">₫/m³</span>
-              </div>
-            </div>
-            <div class="field">
               <label for="vat">VAT</label>
               <div class="input-prefix">
                 <input type="number" id="vat" min="0" step="0.5" value="10" />
                 <span class="suffix">%</span>
               </div>
+            </div>
+          </div>
+          <div class="field">
+            <label for="envFee">Phí môi trường</label>
+            <div class="cost-row">
+              <div class="input-prefix">
+                <input type="number" id="envFee" min="0" step="500" value="3000" />
+                <span class="suffix">₫/m³</span>
+              </div>
+              <select class="ref-dropdown" id="envFeeRef"><option value="">📍 Chọn vật liệu trước</option></select>
             </div>
           </div>
         </div>
@@ -763,12 +802,45 @@
     const modeLabels = { land: 'Đường bộ', river: 'Đường sông', ocean: 'Đường biển' };
     const matLabels  = { sand: 'Cát', rock: 'Đá', soil: 'Đất' };
 
+    // ---- DỮ LIỆU THEO VÙNG ----
+    const regionLabels = {
+      north:     'Miền Bắc',
+      central:   'Miền Trung',
+      southeast: 'Đông Nam Bộ',
+      mekong:    'ĐB Sông Cửu Long'
+    };
+    // Hệ số điều chỉnh giá vật liệu theo vùng (so với giá mặc định)
+    const regionMatMul = {
+      sand: { north: 0.95, central: 1.00, southeast: 1.10, mekong: 0.75 },
+      rock: { north: 0.95, central: 1.00, southeast: 1.05, mekong: 1.25 },
+      soil: { north: 1.00, central: 1.00, southeast: 1.10, mekong: 0.95 }
+    };
+    // Hệ số điều chỉnh cước vận chuyển theo vùng
+    const regionTransMul = {
+      land:  { north: 1.05, central: 1.00, southeast: 1.05, mekong: 0.95 },
+      river: { north: 1.10, central: 1.05, southeast: 1.00, mekong: 0.85 },
+      ocean: { north: 1.00, central: 1.00, southeast: 1.00, mekong: 1.00 }
+    };
+    // Phí môi trường (₫/m³) — khác nhau theo vùng & loại vật liệu
+    const regionEnvFee = {
+      sand: { north: 4000, central: 3500, southeast: 3000, mekong: 2500 },
+      rock: { north: 3000, central: 2500, southeast: 3000, mekong: 3500 },
+      soil: { north: 2000, central: 1500, southeast: 2000, mekong: 1500 }
+    };
+    // Phí bốc xếp (₫/m³) — khác nhau theo nhân công vùng
+    const regionLoadingFee = {
+      north: 12000, central: 12000, southeast: 18000, mekong: 14000
+    };
+
     // ---- TRẠNG THÁI ----
     const state = {
       material: '', subMaterial: '',
       quantity: '', unit: 'm3',
       mode: '', subTransport: '',
-      distance: '', origin: '', destination: ''
+      distance: '', origin: '', destination: '',
+      originCoords: null, destinationCoords: null,
+      region: null,
+      distanceManual: false   // true nếu user tự nhập đè
     };
 
     // ---- HÀM HỖ TRỢ ----
@@ -791,6 +863,98 @@
 
     function findItem(items, value) {
       return (items || []).find(i => i.value === value);
+    }
+
+    // ---- VÙNG MIỀN & TỰ ĐỘNG TÍNH CỰ LY ----
+    function detectRegion(lat) {
+      if (lat == null) return null;
+      lat = parseFloat(lat);
+      if (lat >= 19.5)  return 'north';     // Bắc Trung Bộ trở ra
+      if (lat >= 14.0)  return 'central';   // Miền Trung
+      if (lat >= 10.5)  return 'southeast'; // Đông Nam Bộ (Bình Dương, Đồng Nai, BR-VT, TP.HCM, Long An)
+      return 'mekong';                       // Đồng bằng SCL
+    }
+    function haversineKm(lat1, lon1, lat2, lon2) {
+      const R = 6371, toRad = d => d * Math.PI / 180;
+      const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat/2)**2 +
+                Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+      return 2 * R * Math.asin(Math.sqrt(a));
+    }
+    // Hệ số cự ly thực tế / cự ly chim bay theo phương thức
+    const modeDistMul = { land: 1.30, river: 1.15, ocean: 1.00 };
+
+    function tryAutoFillDistance() {
+      const oc = state.originCoords, dc = state.destinationCoords;
+      if (!oc || !dc || !state.mode) return;
+      if (state.distanceManual) return; // user đã đè thì không ghi đè
+      const km = haversineKm(oc.lat, oc.lon, dc.lat, dc.lon);
+      const adj = Math.max(1, Math.round(km * (modeDistMul[state.mode] || 1)));
+      $('distance').value = adj;
+      state.distance = String(adj);
+      refreshSummary();
+    }
+
+    // ---- TÍNH GIÁ THEO VÙNG ----
+    function getMinePriceByRegion(matKey, subKey, region) {
+      const item = findItem(subMaterials[matKey], subKey);
+      if (!item) return 0;
+      const mul = regionMatMul[matKey]?.[region] ?? 1;
+      return Math.round(item.defaultPrice * mul);
+    }
+    function getTransRateByRegion(modeKey, subKey, region) {
+      const item = findItem(subTransports[modeKey], subKey);
+      if (!item) return 0;
+      const mul = regionTransMul[modeKey]?.[region] ?? 1;
+      return Math.round(item.defaultRate * mul);
+    }
+
+    // ---- BUILD DROPDOWN "THAM KHẢO VÙNG" ----
+    const REGIONS = ['north','central','southeast','mekong'];
+    function buildRefOptions(getValue, formatter) {
+      const cur = state.region;
+      const opts = ['<option value="">📍 Tham khảo vùng…</option>'];
+      for (const r of REGIONS) {
+        const v = getValue(r);
+        if (v == null) continue;
+        const mark = (cur === r) ? ' ★' : '';
+        opts.push(`<option value="${v}">${regionLabels[r]}${mark} — ${formatter(v)}</option>`);
+      }
+      return opts.join('');
+    }
+    function refreshAllRefs() {
+      const fmtPrice = v => fmtN(v) + ' ₫';
+      const fmtRate  = v => fmtN(v) + ' ₫/km';
+      $('minePriceRef').innerHTML = (state.material && state.subMaterial)
+        ? buildRefOptions(r => getMinePriceByRegion(state.material, state.subMaterial, r), fmtPrice)
+        : '<option value="">📍 Chọn vật liệu trước</option>';
+      $('transportRateRef').innerHTML = (state.mode && state.subTransport)
+        ? buildRefOptions(r => getTransRateByRegion(state.mode, state.subTransport, r), fmtRate)
+        : '<option value="">📍 Chọn phương tiện trước</option>';
+      $('loadingFeeRef').innerHTML = buildRefOptions(r => regionLoadingFee[r], fmtPrice);
+      $('envFeeRef').innerHTML = state.material
+        ? buildRefOptions(r => regionEnvFee[state.material][r], fmtPrice)
+        : '<option value="">📍 Chọn vật liệu trước</option>';
+    }
+
+    // ---- ÁP DỤNG GIÁ MẶC ĐỊNH THEO VÙNG (khi chọn mỏ) ----
+    function applyRegionDefaults() {
+      const r = state.region;
+      const badge = $('regionBadge');
+      if (!r) {
+        badge.style.display = 'none';
+        return;
+      }
+      badge.style.display = 'inline-block';
+      badge.textContent = '📍 ' + regionLabels[r];
+
+      if (state.material && state.subMaterial)
+        $('minePrice').value = getMinePriceByRegion(state.material, state.subMaterial, r);
+      if (state.mode && state.subTransport)
+        $('transportRate').value = getTransRateByRegion(state.mode, state.subTransport, r);
+      if (state.material)
+        $('envFee').value = regionEnvFee[state.material][r];
+      $('loadingFee').value = regionLoadingFee[r];
     }
 
     function refreshSummary() {
@@ -816,13 +980,20 @@
       }
       state.subMaterial = '';
       $('minePrice').value = '';
+      if (state.material && state.region) $('envFee').value = regionEnvFee[state.material][state.region];
+      refreshAllRefs();
       refreshSummary();
     });
 
     $('subMaterial').addEventListener('change', (e) => {
       state.subMaterial = e.target.value;
       const item = findItem(subMaterials[state.material], state.subMaterial);
-      if (item) $('minePrice').value = item.defaultPrice;
+      if (item) {
+        $('minePrice').value = state.region
+          ? getMinePriceByRegion(state.material, state.subMaterial, state.region)
+          : item.defaultPrice;
+      }
+      refreshAllRefs();
       refreshSummary();
     });
 
@@ -838,6 +1009,8 @@
         state.subTransport = '';
         $('transportRate').value = '';
         $('transportFixed').value = 0;
+        refreshAllRefs();
+        tryAutoFillDistance();
         refreshSummary();
       });
     });
@@ -846,13 +1019,34 @@
       state.subTransport = e.target.value;
       const item = findItem(subTransports[state.mode], state.subTransport);
       if (item) {
-        $('transportRate').value = item.defaultRate;
+        $('transportRate').value = state.region
+          ? getTransRateByRegion(state.mode, state.subTransport, state.region)
+          : item.defaultRate;
         $('transportFixed').value = item.defaultFixed;
       }
+      refreshAllRefs();
       refreshSummary();
     });
 
-    $('distance').addEventListener('input',    (e) => { state.distance = e.target.value;    refreshSummary(); });
+    $('distance').addEventListener('input',    (e) => {
+      state.distance = e.target.value;
+      state.distanceManual = true;
+      refreshSummary();
+    });
+
+    // ---- DROPDOWN "Tham khảo vùng" → autofill input ----
+    [
+      ['minePriceRef',     'minePrice'],
+      ['transportRateRef', 'transportRate'],
+      ['loadingFeeRef',    'loadingFee'],
+      ['envFeeRef',        'envFee']
+    ].forEach(([refId, targetId]) => {
+      $(refId).addEventListener('change', (e) => {
+        if (!e.target.value) return;
+        $(targetId).value = e.target.value;
+        e.target.value = ''; // reset selector về placeholder
+      });
+    });
 
     // ---- AUTOCOMPLETE ĐỊA ĐIỂM (Nominatim / OpenStreetMap, ưu tiên VN) ----
     function setupLocationAutocomplete(inputId, suggestionsId, spinnerId, mapBtnId, stateKey) {
@@ -910,10 +1104,21 @@
         const r = items[idx];
         if (!r) return;
         input.value = r.display_name;
-        coords = { lat: r.lat, lon: r.lon };
+        const lat = parseFloat(r.lat), lon = parseFloat(r.lon);
+        coords = { lat, lon };
         state[stateKey] = r.display_name;
+        state[stateKey + 'Coords'] = { lat, lon };
         sugBox.classList.remove('show');
         updateMapLink();
+        // Origin = mỏ → quyết định region cho toàn bộ giá
+        if (stateKey === 'origin') {
+          state.region = detectRegion(lat);
+          applyRegionDefaults();
+          refreshAllRefs();
+        }
+        // Reset cờ thủ công để được auto-tính lại cự ly
+        state.distanceManual = false;
+        tryAutoFillDistance();
         refreshSummary();
       };
 
@@ -936,7 +1141,12 @@
         const v = e.target.value;
         state[stateKey] = v;
         coords = null;
+        state[stateKey + 'Coords'] = null;
         updateMapLink();
+        if (stateKey === 'origin' && !v.trim()) {
+          state.region = null;
+          refreshAllRefs();
+        }
         refreshSummary();
         clearTimeout(timer);
         if (v.trim().length < 2) {
@@ -1083,6 +1293,7 @@
     $('calcBtn').addEventListener('click', calculate);
 
     refreshSummary();
+    refreshAllRefs();
   </script>
 </body>
 </html>
