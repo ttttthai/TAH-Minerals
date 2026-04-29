@@ -295,6 +295,56 @@
       font-weight: 600;
       margin-left: 6px;
     }
+
+    /* Spec card cho TCVN */
+    .spec-card {
+      margin-top: 6px;
+      padding: 9px 10px;
+      background: #fff7ed;
+      border: 1px solid #fdba74;
+      border-radius: 6px;
+      font-size: 11px;
+    }
+    .spec-card .spec-header {
+      display: flex; align-items: center; gap: 6px;
+      margin-bottom: 6px; padding-bottom: 6px;
+      border-bottom: 1px solid #fed7aa;
+      flex-wrap: wrap;
+    }
+    .spec-card .spec-standard {
+      background: var(--primary);
+      color: white;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .spec-card .spec-title {
+      font-weight: 600;
+      color: var(--text);
+      font-size: 12px;
+    }
+    .spec-card .spec-row {
+      display: flex; gap: 8px;
+      margin: 2px 0;
+      color: var(--text);
+      line-height: 1.4;
+    }
+    .spec-card .spec-row .k {
+      color: var(--muted);
+      font-size: 11px;
+      min-width: 140px;
+      flex-shrink: 0;
+    }
+    .spec-card .spec-row .v {
+      color: var(--text);
+      font-weight: 500;
+    }
+    @media (max-width: 480px) {
+      .spec-card .spec-row { flex-direction: column; gap: 0; }
+      .spec-card .spec-row .k { min-width: 0; }
+    }
     .input-prefix .suffix {
       position: absolute;
       right: 8px;
@@ -421,12 +471,13 @@
               </select>
             </div>
             <div class="field">
-              <label for="subMaterial">Loại cụ thể</label>
+              <label for="subMaterial">Loại cụ thể (theo TCVN)</label>
               <select id="subMaterial" disabled>
                 <option value="">— Chọn nhóm trước —</option>
               </select>
             </div>
           </div>
+          <div class="spec-card" id="materialSpec" style="display:none"></div>
           <div class="row">
             <div class="field">
               <label for="quantity">Khối lượng</label>
@@ -746,32 +797,140 @@
 
   <script>
     // ---- DỮ LIỆU DANH MỤC ----
+    // Cát phân loại chi tiết theo các TCVN hiện hành
     const subMaterials = {
       sand: [
-        { value: 'cat-song-tho',   label: 'Cát sông thô (Mđl 2.0–3.3) — bê tông', defaultPrice: 380000 },
-        { value: 'cat-song-vua',   label: 'Cát sông vừa (Mđl 1.5–2.0) — xây/tô',  defaultPrice: 300000 },
-        { value: 'cat-song-min',   label: 'Cát sông mịn (Mđl 0.7–1.5)',            defaultPrice: 220000 },
-        { value: 'cat-bien',       label: 'Cát biển (đã rửa mặn)',                 defaultPrice: 180000 },
-        { value: 'cat-nghien',     label: 'Cát nghiền (manufactured sand)',        defaultPrice: 280000 },
-        { value: 'cat-san-lap',    label: 'Cát san lấp',                           defaultPrice: 95000  }
+        // ===== TCVN 7570:2006 — Cát cho bê tông & vữa =====
+        { value: 'cat-7570-tho',
+          group: 'TCVN 7570:2006 — Cát cho bê tông & vữa',
+          label: 'Cát thô (Mđl 2.0–3.3)',
+          standard: 'TCVN 7570:2006',
+          specs: {
+            'Mô-đun độ lớn (Mđl)': '2.0 – 3.3',
+            'Hàm lượng bùn, bụi, sét': '≤ 3.0%',
+            'Tạp chất hữu cơ': '≤ Bậc 2 (so màu chuẩn)',
+            'Hàm lượng Cl⁻': '≤ 0.01% (BT DUL) / ≤ 0.05% (BTCT)',
+            'Khuyến nghị dùng': 'BTCT mác cao, bê tông DUL, BT cường độ ≥ M300'
+          },
+          defaultPrice: 400000 },
+        { value: 'cat-7570-min',
+          group: 'TCVN 7570:2006 — Cát cho bê tông & vữa',
+          label: 'Cát mịn (Mđl 0.7–2.0)',
+          standard: 'TCVN 7570:2006',
+          specs: {
+            'Mô-đun độ lớn (Mđl)': '0.7 – 2.0',
+            'Hàm lượng bùn, bụi, sét': '≤ 5.0%',
+            'Tạp chất hữu cơ': '≤ Bậc 2',
+            'Khuyến nghị dùng': 'Bê tông mác thấp (B7.5–B15), vữa xây/tô'
+          },
+          defaultPrice: 280000 },
+
+        // ===== TCVN 9205:2012 — Cát cho vữa xây dựng =====
+        { value: 'cat-9205-to',
+          group: 'TCVN 9205:2012 — Cát cho vữa xây dựng',
+          label: 'Cát to (Mđl ≥ 2.0)',
+          standard: 'TCVN 9205:2012',
+          specs: {
+            'Mô-đun độ lớn (Mđl)': '≥ 2.0',
+            'Hàm lượng bùn, bụi, sét': '≤ 3.0% (vữa M75–M100)',
+            'Hàm lượng SiO₂': '≥ 50%',
+            'Khuyến nghị dùng': 'Vữa xây tường gạch (M50, M75, M100)'
+          },
+          defaultPrice: 340000 },
+        { value: 'cat-9205-vua',
+          group: 'TCVN 9205:2012 — Cát cho vữa xây dựng',
+          label: 'Cát vừa (Mđl 1.5–2.0)',
+          standard: 'TCVN 9205:2012',
+          specs: {
+            'Mô-đun độ lớn (Mđl)': '1.5 – 2.0',
+            'Hàm lượng bùn, bụi, sét': '≤ 5.0%',
+            'Khuyến nghị dùng': 'Vữa xây thông dụng (M25, M50)'
+          },
+          defaultPrice: 290000 },
+        { value: 'cat-9205-nho',
+          group: 'TCVN 9205:2012 — Cát cho vữa xây dựng',
+          label: 'Cát nhỏ (Mđl 0.7–1.5)',
+          standard: 'TCVN 9205:2012',
+          specs: {
+            'Mô-đun độ lớn (Mđl)': '0.7 – 1.5',
+            'Hàm lượng bùn, bụi, sét': '≤ 10.0%',
+            'Khuyến nghị dùng': 'Vữa tô tường (vữa trát)'
+          },
+          defaultPrice: 230000 },
+        { value: 'cat-9205-min',
+          group: 'TCVN 9205:2012 — Cát cho vữa xây dựng',
+          label: 'Cát mịn (Mđl 0.6–0.7)',
+          standard: 'TCVN 9205:2012',
+          specs: {
+            'Mô-đun độ lớn (Mđl)': '0.6 – 0.7',
+            'Hàm lượng bùn, bụi, sét': '≤ 14.0%',
+            'Yêu cầu thêm': 'Hàm lượng SiO₂ ≥ 50%, không lẫn vỏ sò',
+            'Khuyến nghị dùng': 'Vữa hoàn thiện, vữa trát mỏng'
+          },
+          defaultPrice: 180000 },
+
+        // ===== Theo nguồn gốc / công dụng đặc biệt =====
+        { value: 'cat-bien',
+          group: 'Theo nguồn gốc / công dụng đặc biệt',
+          label: 'Cát biển (đã rửa mặn)',
+          standard: 'TCVN 7570:2006 (chú thích cát biển)',
+          specs: {
+            'Hàm lượng Cl⁻': '≤ 0.05% (BTCT thường) / ≤ 0.01% (BT DUL)',
+            'Hàm lượng SO₃': '≤ 1.0%',
+            'Hàm lượng bùn, bụi, sét': '≤ 3.0%',
+            'Yêu cầu xử lý': 'Bắt buộc rửa mặn trước khi dùng cho BTCT',
+            'Khuyến nghị dùng': 'Sau xử lý: BTCT mác trung bình; chưa xử lý: san lấp'
+          },
+          defaultPrice: 180000 },
+        { value: 'cat-nghien',
+          group: 'Theo nguồn gốc / công dụng đặc biệt',
+          label: 'Cát nghiền (manufactured sand)',
+          standard: 'TCVN 9205:2012 (Phụ lục A)',
+          specs: {
+            'Mô-đun độ lớn (Mđl)': '2.0 – 3.3',
+            'Hàm lượng hạt < 0.075 mm': '≤ 14%',
+            'Cường độ đá gốc': '≥ 60 MPa',
+            'Khuyến nghị dùng': 'Thay thế cát tự nhiên trong BT/vữa'
+          },
+          defaultPrice: 280000 },
+        { value: 'cat-san-lap',
+          group: 'Theo nguồn gốc / công dụng đặc biệt',
+          label: 'Cát san lấp',
+          standard: 'TCVN 4447:2012',
+          specs: {
+            'Phân loại': 'Đất hạt thô — không yêu cầu cao về Mđl',
+            'Hàm lượng tạp chất hữu cơ': '≤ 5%',
+            'Khuyến nghị dùng': 'San lấp mặt bằng, đắp nền không chịu lực cao'
+          },
+          defaultPrice: 95000 },
+        { value: 'cat-duc',
+          group: 'Theo nguồn gốc / công dụng đặc biệt',
+          label: 'Cát đúc',
+          standard: 'TCVN 1450-1:1986',
+          specs: {
+            'Cỡ hạt': '0.1 – 0.5 mm (đồng đều)',
+            'Hàm lượng SiO₂': '≥ 90%',
+            'Khuyến nghị dùng': 'Khuôn đúc kim loại'
+          },
+          defaultPrice: 250000 }
       ],
       rock: [
-        { value: 'da-1x2',         label: 'Đá 1×2 (10–25 mm) — bê tông',           defaultPrice: 320000 },
-        { value: 'da-2x4',         label: 'Đá 2×4 (20–40 mm)',                     defaultPrice: 250000 },
-        { value: 'da-4x6',         label: 'Đá 4×6 (40–60 mm)',                     defaultPrice: 200000 },
-        { value: 'da-5x7',         label: 'Đá 5×7',                                 defaultPrice: 190000 },
-        { value: 'da-mi-sang',     label: 'Đá mi sàng (5–10 mm)',                  defaultPrice: 230000 },
-        { value: 'da-mi-bui',      label: 'Đá mi bụi / mạt (0–5 mm)',              defaultPrice: 130000 },
-        { value: 'da-hoc',         label: 'Đá hộc (rip-rap, 150–300 mm)',          defaultPrice: 170000 },
-        { value: 'da-cap-phoi',    label: 'Đá cấp phối (graded base 0–37.5 mm)',   defaultPrice: 220000 }
+        { value: 'da-1x2',         label: 'Đá 1×2 (10–25 mm) — bê tông',           standard: 'TCVN 7570:2006', defaultPrice: 320000 },
+        { value: 'da-2x4',         label: 'Đá 2×4 (20–40 mm)',                     standard: 'TCVN 7570:2006', defaultPrice: 250000 },
+        { value: 'da-4x6',         label: 'Đá 4×6 (40–60 mm)',                     standard: 'TCVN 7570:2006', defaultPrice: 200000 },
+        { value: 'da-5x7',         label: 'Đá 5×7',                                 standard: 'TCVN 7570:2006', defaultPrice: 190000 },
+        { value: 'da-mi-sang',     label: 'Đá mi sàng (5–10 mm)',                  standard: 'TCVN 7570:2006', defaultPrice: 230000 },
+        { value: 'da-mi-bui',      label: 'Đá mi bụi / mạt (0–5 mm)',              standard: 'TCVN 7570:2006', defaultPrice: 130000 },
+        { value: 'da-hoc',         label: 'Đá hộc (rip-rap, 150–300 mm)',          standard: 'TCVN 1771:1987', defaultPrice: 170000 },
+        { value: 'da-cap-phoi',    label: 'Đá cấp phối (graded base 0–37.5 mm)',   standard: 'TCVN 8859:2011', defaultPrice: 220000 }
       ],
       soil: [
-        { value: 'dat-san-lap',    label: 'Đất san lấp',                           defaultPrice: 60000  },
-        { value: 'dat-dap-k95',    label: 'Đất đắp nền K95',                       defaultPrice: 90000  },
-        { value: 'dat-dap-k98',    label: 'Đất đắp nền K98',                       defaultPrice: 110000 },
-        { value: 'dat-doi',        label: 'Đất đồi / phong hóa',                   defaultPrice: 70000  },
-        { value: 'dat-set',        label: 'Đất sét',                               defaultPrice: 80000  },
-        { value: 'dat-pha-cat',    label: 'Đất pha cát',                           defaultPrice: 85000  }
+        { value: 'dat-san-lap',    label: 'Đất san lấp',                           standard: 'TCVN 4447:2012', defaultPrice: 60000  },
+        { value: 'dat-dap-k95',    label: 'Đất đắp nền K95',                       standard: 'TCVN 9436:2012', defaultPrice: 90000  },
+        { value: 'dat-dap-k98',    label: 'Đất đắp nền K98',                       standard: 'TCVN 9436:2012', defaultPrice: 110000 },
+        { value: 'dat-doi',        label: 'Đất đồi / phong hóa',                   standard: 'TCVN 5747:1993', defaultPrice: 70000  },
+        { value: 'dat-set',        label: 'Đất sét',                               standard: 'TCVN 5747:1993', defaultPrice: 80000  },
+        { value: 'dat-pha-cat',    label: 'Đất pha cát',                           standard: 'TCVN 5747:1993', defaultPrice: 85000  }
       ]
     };
 
@@ -849,8 +1008,24 @@
     const fmtN = (n) => Number(n || 0).toLocaleString('vi-VN', { maximumFractionDigits: 0 });
 
     function fillSelect(selectEl, items, placeholder) {
-      selectEl.innerHTML = `<option value="">${placeholder}</option>` +
-        items.map(i => `<option value="${i.value}">${i.label}</option>`).join('');
+      let html = `<option value="">${placeholder}</option>`;
+      const hasGroups = items.some(i => i.group);
+      if (hasGroups) {
+        const groups = new Map();
+        for (const it of items) {
+          const g = it.group || 'Khác';
+          if (!groups.has(g)) groups.set(g, []);
+          groups.get(g).push(it);
+        }
+        for (const [g, list] of groups) {
+          html += `<optgroup label="${g}">`;
+          html += list.map(i => `<option value="${i.value}">${i.label}</option>`).join('');
+          html += `</optgroup>`;
+        }
+      } else {
+        html += items.map(i => `<option value="${i.value}">${i.label}</option>`).join('');
+      }
+      selectEl.innerHTML = html;
       selectEl.disabled = false;
     }
 
@@ -863,6 +1038,32 @@
 
     function findItem(items, value) {
       return (items || []).find(i => i.value === value);
+    }
+
+    // ---- HIỂN THỊ SPEC CARD THEO TCVN ----
+    function updateSpecCard() {
+      const card = $('materialSpec');
+      if (!state.material || !state.subMaterial) { card.style.display = 'none'; return; }
+      const item = findItem(subMaterials[state.material], state.subMaterial);
+      if (!item || !item.standard) { card.style.display = 'none'; return; }
+
+      let rows = '';
+      if (item.specs) {
+        for (const [k, v] of Object.entries(item.specs)) {
+          rows += `<div class="spec-row"><span class="k">${k}:</span><span class="v">${v}</span></div>`;
+        }
+      } else {
+        rows = `<div class="spec-row"><span class="k">Tham chiếu:</span><span class="v">Theo ${item.standard}</span></div>`;
+      }
+
+      card.innerHTML = `
+        <div class="spec-header">
+          <span class="spec-standard">${item.standard}</span>
+          <span class="spec-title">${item.label}</span>
+        </div>
+        <div class="spec-body">${rows}</div>
+      `;
+      card.style.display = 'block';
     }
 
     // ---- VÙNG MIỀN & TỰ ĐỘNG TÍNH CỰ LY ----
@@ -981,6 +1182,7 @@
       state.subMaterial = '';
       $('minePrice').value = '';
       if (state.material && state.region) $('envFee').value = regionEnvFee[state.material][state.region];
+      updateSpecCard();
       refreshAllRefs();
       refreshSummary();
     });
@@ -993,6 +1195,7 @@
           ? getMinePriceByRegion(state.material, state.subMaterial, state.region)
           : item.defaultPrice;
       }
+      updateSpecCard();
       refreshAllRefs();
       refreshSummary();
     });
