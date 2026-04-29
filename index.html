@@ -273,6 +273,95 @@
       color: var(--muted);
       pointer-events: none;
     }
+
+    /* Location autocomplete + Maps link */
+    .loc-wrap { position: relative; display: flex; gap: 6px; }
+    .loc-wrap .loc-input { flex: 1; position: relative; }
+    .loc-wrap input {
+      width: 100%;
+      padding: 6px 28px 6px 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 12px;
+      background: white;
+      color: var(--text);
+    }
+    .loc-wrap input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(194, 65, 12, 0.1);
+    }
+    .loc-spinner {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 12px; height: 12px;
+      border: 2px solid #e2e8f0;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+    .loc-spinner.show { display: block; }
+    @keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
+
+    .map-btn {
+      flex: 0 0 auto;
+      padding: 0 10px;
+      border: 1px solid var(--border);
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text);
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+      text-decoration: none;
+    }
+    .map-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .map-btn.disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 2px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      z-index: 100;
+      max-height: 240px;
+      overflow-y: auto;
+      display: none;
+    }
+    .suggestions.show { display: block; }
+    .suggestion {
+      padding: 7px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      border-bottom: 1px solid #f1f5f9;
+      line-height: 1.35;
+    }
+    .suggestion:last-child { border-bottom: none; }
+    .suggestion:hover, .suggestion.active { background: #fef3c7; }
+    .suggestion .main { font-weight: 500; color: var(--text); }
+    .suggestion .sub  { font-size: 10px; color: var(--muted); margin-top: 1px; }
+    .suggestion-empty {
+      padding: 10px;
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
@@ -347,19 +436,31 @@
             </select>
           </div>
 
-          <div class="row">
-            <div class="field">
-              <label for="distance">Cự ly (km)</label>
-              <input type="number" id="distance" min="0" step="1" placeholder="VD: 50" />
-            </div>
-            <div class="field">
-              <label for="origin">Điểm xuất (mỏ / cảng)</label>
-              <input type="text" id="origin" placeholder="VD: Mỏ đá Kiên Lương" />
+          <div class="field">
+            <label for="distance">Cự ly (km)</label>
+            <input type="number" id="distance" min="0" step="1" placeholder="VD: 50" />
+          </div>
+          <div class="field">
+            <label for="origin">Điểm xuất (mỏ / cảng)</label>
+            <div class="loc-wrap">
+              <div class="loc-input">
+                <input type="text" id="origin" placeholder="Gõ tên mỏ, cảng, địa danh..." autocomplete="off" />
+                <div class="loc-spinner" id="origin-spinner"></div>
+                <div class="suggestions" id="origin-suggestions"></div>
+              </div>
+              <a class="map-btn disabled" id="origin-map" target="_blank" rel="noopener" title="Mở Google Maps">🗺️</a>
             </div>
           </div>
           <div class="field">
             <label for="destination">Điểm đến (công trình)</label>
-            <input type="text" id="destination" placeholder="VD: Công trình KCN Long An" />
+            <div class="loc-wrap">
+              <div class="loc-input">
+                <input type="text" id="destination" placeholder="Gõ tên công trình, địa danh..." autocomplete="off" />
+                <div class="loc-spinner" id="destination-spinner"></div>
+                <div class="suggestions" id="destination-suggestions"></div>
+              </div>
+              <a class="map-btn disabled" id="destination-map" target="_blank" rel="noopener" title="Mở Google Maps">🗺️</a>
+            </div>
           </div>
         </div>
       </div>
@@ -752,8 +853,130 @@
     });
 
     $('distance').addEventListener('input',    (e) => { state.distance = e.target.value;    refreshSummary(); });
-    $('origin').addEventListener('input',      (e) => { state.origin = e.target.value;      refreshSummary(); });
-    $('destination').addEventListener('input', (e) => { state.destination = e.target.value; refreshSummary(); });
+
+    // ---- AUTOCOMPLETE ĐỊA ĐIỂM (Nominatim / OpenStreetMap, ưu tiên VN) ----
+    function setupLocationAutocomplete(inputId, suggestionsId, spinnerId, mapBtnId, stateKey) {
+      const input = $(inputId);
+      const sugBox = $(suggestionsId);
+      const spinner = $(spinnerId);
+      const mapBtn = $(mapBtnId);
+      let timer = null;
+      let activeIdx = -1;
+      let items = [];
+      let coords = null;
+
+      const updateMapLink = () => {
+        const v = input.value.trim();
+        if (coords) {
+          mapBtn.href = `https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lon}`;
+          mapBtn.classList.remove('disabled');
+        } else if (v) {
+          mapBtn.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(v)}`;
+          mapBtn.classList.remove('disabled');
+        } else {
+          mapBtn.removeAttribute('href');
+          mapBtn.classList.add('disabled');
+        }
+      };
+
+      const renderSuggestions = (results) => {
+        items = results || [];
+        activeIdx = -1;
+        if (!items.length) {
+          sugBox.innerHTML = '<div class="suggestion-empty">Không tìm thấy địa điểm phù hợp</div>';
+          sugBox.classList.add('show');
+          return;
+        }
+        sugBox.innerHTML = items.map((r, i) => {
+          const parts = (r.display_name || '').split(',');
+          const main = parts[0] || r.display_name;
+          const sub  = parts.slice(1).join(',').trim();
+          return `<div class="suggestion" data-idx="${i}">
+            <div class="main">${main}</div>
+            <div class="sub">${sub}</div>
+          </div>`;
+        }).join('');
+        sugBox.classList.add('show');
+        sugBox.querySelectorAll('.suggestion').forEach(el => {
+          el.addEventListener('mousedown', (ev) => {
+            ev.preventDefault();
+            const idx = parseInt(el.dataset.idx, 10);
+            selectSuggestion(idx);
+          });
+        });
+      };
+
+      const selectSuggestion = (idx) => {
+        const r = items[idx];
+        if (!r) return;
+        input.value = r.display_name;
+        coords = { lat: r.lat, lon: r.lon };
+        state[stateKey] = r.display_name;
+        sugBox.classList.remove('show');
+        updateMapLink();
+        refreshSummary();
+      };
+
+      const search = async (q) => {
+        spinner.classList.add('show');
+        try {
+          const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&countrycodes=vn&limit=6&addressdetails=0`;
+          const res = await fetch(url, { headers: { 'Accept-Language': 'vi' } });
+          const data = await res.json();
+          renderSuggestions(data);
+        } catch (e) {
+          sugBox.innerHTML = '<div class="suggestion-empty">Lỗi tải gợi ý — vui lòng thử lại</div>';
+          sugBox.classList.add('show');
+        } finally {
+          spinner.classList.remove('show');
+        }
+      };
+
+      input.addEventListener('input', (e) => {
+        const v = e.target.value;
+        state[stateKey] = v;
+        coords = null;
+        updateMapLink();
+        refreshSummary();
+        clearTimeout(timer);
+        if (v.trim().length < 2) {
+          sugBox.classList.remove('show');
+          return;
+        }
+        timer = setTimeout(() => search(v.trim()), 350);
+      });
+
+      input.addEventListener('keydown', (e) => {
+        if (!sugBox.classList.contains('show')) return;
+        const sugs = sugBox.querySelectorAll('.suggestion');
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          activeIdx = Math.min(activeIdx + 1, sugs.length - 1);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          activeIdx = Math.max(activeIdx - 1, 0);
+        } else if (e.key === 'Enter' && activeIdx >= 0) {
+          e.preventDefault();
+          selectSuggestion(activeIdx);
+          return;
+        } else if (e.key === 'Escape') {
+          sugBox.classList.remove('show');
+          return;
+        } else { return; }
+        sugs.forEach((el, i) => el.classList.toggle('active', i === activeIdx));
+      });
+
+      input.addEventListener('blur', () => {
+        setTimeout(() => sugBox.classList.remove('show'), 150);
+      });
+
+      input.addEventListener('focus', () => {
+        if (sugBox.innerHTML && items.length) sugBox.classList.add('show');
+      });
+    }
+
+    setupLocationAutocomplete('origin',      'origin-suggestions',      'origin-spinner',      'origin-map',      'origin');
+    setupLocationAutocomplete('destination', 'destination-suggestions', 'destination-spinner', 'destination-map', 'destination');
 
     // ---- TÍNH CHI PHÍ ----
     function showError(msg) {
