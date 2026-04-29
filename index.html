@@ -915,22 +915,339 @@
           defaultPrice: 250000 }
       ],
       rock: [
-        { value: 'da-1x2',         label: 'Đá 1×2 (10–25 mm) — bê tông',           standard: 'TCVN 7570:2006', defaultPrice: 320000 },
-        { value: 'da-2x4',         label: 'Đá 2×4 (20–40 mm)',                     standard: 'TCVN 7570:2006', defaultPrice: 250000 },
-        { value: 'da-4x6',         label: 'Đá 4×6 (40–60 mm)',                     standard: 'TCVN 7570:2006', defaultPrice: 200000 },
-        { value: 'da-5x7',         label: 'Đá 5×7',                                 standard: 'TCVN 7570:2006', defaultPrice: 190000 },
-        { value: 'da-mi-sang',     label: 'Đá mi sàng (5–10 mm)',                  standard: 'TCVN 7570:2006', defaultPrice: 230000 },
-        { value: 'da-mi-bui',      label: 'Đá mi bụi / mạt (0–5 mm)',              standard: 'TCVN 7570:2006', defaultPrice: 130000 },
-        { value: 'da-hoc',         label: 'Đá hộc (rip-rap, 150–300 mm)',          standard: 'TCVN 1771:1987', defaultPrice: 170000 },
-        { value: 'da-cap-phoi',    label: 'Đá cấp phối (graded base 0–37.5 mm)',   standard: 'TCVN 8859:2011', defaultPrice: 220000 }
+        // ===== TCVN 7570:2006 — Cốt liệu thô cho bê tông & vữa =====
+        { value: 'da-7570-1x2-20',
+          group: 'TCVN 7570:2006 — Cốt liệu thô cho bê tông & vữa',
+          label: 'Đá 1×2 (Dmax 20 mm)',
+          standard: 'TCVN 7570:2006',
+          specs: {
+            'Cỡ hạt': '10 – 20 mm (Dmax = 20 mm)',
+            'Cường độ đá gốc': '≥ 100 MPa (cho BT ≥ M400)',
+            'Hàm lượng hạt thoi dẹt': '≤ 15%',
+            'Hàm lượng bùn, bụi, sét': '≤ 1.0%',
+            'Hàm lượng SO₃': '≤ 1.0%',
+            'Độ mài mòn LA': '≤ 35%',
+            'Khuyến nghị dùng': 'BTCT mác cao M400, M500, BT DUL'
+          },
+          defaultPrice: 340000 },
+        { value: 'da-7570-1x2-25',
+          group: 'TCVN 7570:2006 — Cốt liệu thô cho bê tông & vữa',
+          label: 'Đá 1×2 (Dmax 25 mm)',
+          standard: 'TCVN 7570:2006',
+          specs: {
+            'Cỡ hạt': '10 – 25 mm (Dmax = 25 mm)',
+            'Cường độ đá gốc': '≥ 80 MPa (BT M250–M350)',
+            'Hàm lượng hạt thoi dẹt': '≤ 35%',
+            'Hàm lượng bùn, bụi, sét': '≤ 1.0%',
+            'Khuyến nghị dùng': 'BTCT thông dụng (M250, M300, M350)'
+          },
+          defaultPrice: 320000 },
+        { value: 'da-7570-2x4',
+          group: 'TCVN 7570:2006 — Cốt liệu thô cho bê tông & vữa',
+          label: 'Đá 2×4 (Dmax 40 mm)',
+          standard: 'TCVN 7570:2006',
+          specs: {
+            'Cỡ hạt': '20 – 40 mm (Dmax = 40 mm)',
+            'Cường độ đá gốc': '≥ 60 MPa',
+            'Hàm lượng hạt thoi dẹt': '≤ 35%',
+            'Khuyến nghị dùng': 'BT khối lớn, móng, BT lót'
+          },
+          defaultPrice: 250000 },
+        { value: 'da-7570-4x6',
+          group: 'TCVN 7570:2006 — Cốt liệu thô cho bê tông & vữa',
+          label: 'Đá 4×6 (Dmax 70 mm)',
+          standard: 'TCVN 7570:2006',
+          specs: {
+            'Cỡ hạt': '40 – 70 mm (Dmax = 70 mm)',
+            'Cường độ đá gốc': '≥ 60 MPa',
+            'Khuyến nghị dùng': 'BT khối lớn, BT móng, BT đập, đệm móng'
+          },
+          defaultPrice: 200000 },
+
+        // ===== TCVN 1771:1987 — Đá dăm, sỏi, sỏi dăm xây dựng =====
+        { value: 'da-1771-5x7',
+          group: 'TCVN 1771:1987 — Đá dăm, sỏi xây dựng',
+          label: 'Đá 5×7 (50–70 mm)',
+          standard: 'TCVN 1771:1987',
+          specs: {
+            'Cỡ hạt': '50 – 70 mm',
+            'Mác đá': 'M600 – M1200',
+            'Cấp đá': 'Cấp 1 (mác ≥ M800) hoặc cấp 2',
+            'Khuyến nghị dùng': 'Đá xây kè, móng cấp phối, đệm bê tông'
+          },
+          defaultPrice: 190000 },
+        { value: 'da-1771-hoc',
+          group: 'TCVN 1771:1987 — Đá dăm, sỏi xây dựng',
+          label: 'Đá hộc (150–300 mm)',
+          standard: 'TCVN 1771:1987',
+          specs: {
+            'Cỡ hạt': '150 – 300 mm (rip-rap)',
+            'Mác đá': '≥ M600',
+            'Trọng lượng riêng': '≥ 2.4 g/cm³',
+            'Khuyến nghị dùng': 'Kè đá, đê biển, gia cố mái taluy, móng tường rào'
+          },
+          defaultPrice: 170000 },
+        { value: 'da-1771-soi',
+          group: 'TCVN 1771:1987 — Đá dăm, sỏi xây dựng',
+          label: 'Sỏi tự nhiên (cuội)',
+          standard: 'TCVN 1771:1987',
+          specs: {
+            'Cỡ hạt': '5 – 70 mm (theo phân cấp)',
+            'Hàm lượng bùn, bụi, sét': '≤ 1.0%',
+            'Khuyến nghị dùng': 'BT mác trung bình, lớp lọc, đường giao thông nông thôn'
+          },
+          defaultPrice: 220000 },
+
+        // ===== TCVN 8859:2011 — Cấp phối đá dăm cho áo đường =====
+        { value: 'da-8859-cp1-25',
+          group: 'TCVN 8859:2011 — Cấp phối đá dăm cho áo đường',
+          label: 'CPĐD loại I — Dmax 25 mm',
+          standard: 'TCVN 8859:2011',
+          specs: {
+            'Cỡ hạt lớn nhất': 'Dmax = 25 mm',
+            'CBR ngâm 4 ngày': '≥ 100% (chặt K98)',
+            'Độ mài mòn LA': '≤ 35%',
+            'Hàm lượng hạt thoi dẹt': '≤ 18%',
+            'Chỉ số dẻo (PI)': '≤ 6',
+            'Khuyến nghị dùng': 'Lớp móng trên (base course) đường cấp cao'
+          },
+          defaultPrice: 280000 },
+        { value: 'da-8859-cp1-375',
+          group: 'TCVN 8859:2011 — Cấp phối đá dăm cho áo đường',
+          label: 'CPĐD loại I — Dmax 37.5 mm',
+          standard: 'TCVN 8859:2011',
+          specs: {
+            'Cỡ hạt lớn nhất': 'Dmax = 37.5 mm',
+            'CBR ngâm 4 ngày': '≥ 100%',
+            'Độ mài mòn LA': '≤ 35%',
+            'Hàm lượng hạt thoi dẹt': '≤ 18%',
+            'Chỉ số dẻo (PI)': '≤ 6',
+            'Khuyến nghị dùng': 'Lớp móng trên đường ô tô cao tốc, quốc lộ'
+          },
+          defaultPrice: 260000 },
+        { value: 'da-8859-cp2-375',
+          group: 'TCVN 8859:2011 — Cấp phối đá dăm cho áo đường',
+          label: 'CPĐD loại II — Dmax 37.5 mm',
+          standard: 'TCVN 8859:2011',
+          specs: {
+            'Cỡ hạt lớn nhất': 'Dmax = 37.5 mm',
+            'CBR ngâm 4 ngày': '≥ 80%',
+            'Độ mài mòn LA': '≤ 40%',
+            'Hàm lượng hạt thoi dẹt': '≤ 20%',
+            'Khuyến nghị dùng': 'Lớp móng dưới (sub-base) đường ô tô'
+          },
+          defaultPrice: 230000 },
+        { value: 'da-8859-cp2-50',
+          group: 'TCVN 8859:2011 — Cấp phối đá dăm cho áo đường',
+          label: 'CPĐD loại II — Dmax 50 mm',
+          standard: 'TCVN 8859:2011',
+          specs: {
+            'Cỡ hạt lớn nhất': 'Dmax = 50 mm',
+            'CBR ngâm 4 ngày': '≥ 80%',
+            'Độ mài mòn LA': '≤ 40%',
+            'Khuyến nghị dùng': 'Lớp móng dưới đường giao thông nội bộ, KCN'
+          },
+          defaultPrice: 210000 },
+
+        // ===== Theo công dụng đặc biệt =====
+        { value: 'da-mi-sang',
+          group: 'Theo công dụng đặc biệt',
+          label: 'Đá mi sàng (5–10 mm)',
+          standard: 'TCVN 7570:2006',
+          specs: {
+            'Cỡ hạt': '5 – 10 mm',
+            'Khuyến nghị dùng': 'Bê tông nhựa, gạch terrazzo, lát vỉa hè'
+          },
+          defaultPrice: 230000 },
+        { value: 'da-mi-bui',
+          group: 'Theo công dụng đặc biệt',
+          label: 'Đá mi bụi / mạt (0–5 mm)',
+          standard: 'TCVN 7570:2006',
+          specs: {
+            'Cỡ hạt': '0 – 5 mm',
+            'Hàm lượng bột (< 0.075 mm)': 'Cao — không dùng cho BTCT trực tiếp',
+            'Khuyến nghị dùng': 'Phối trộn bê tông nhựa, gạch không nung, lớp lót'
+          },
+          defaultPrice: 130000 },
+        { value: 'da-phong-hoa',
+          group: 'Theo công dụng đặc biệt',
+          label: 'Đá phong hóa (đất đá lẫn)',
+          standard: 'TCVN 4447:2012',
+          specs: {
+            'Đặc điểm': 'Đá đã phong hóa, lẫn đất sét',
+            'Cường độ': 'Thấp, không dùng cho kết cấu chịu lực',
+            'Khuyến nghị dùng': 'San lấp mặt bằng, đắp nền đường cấp thấp'
+          },
+          defaultPrice: 90000 }
       ],
       soil: [
-        { value: 'dat-san-lap',    label: 'Đất san lấp',                           standard: 'TCVN 4447:2012', defaultPrice: 60000  },
-        { value: 'dat-dap-k95',    label: 'Đất đắp nền K95',                       standard: 'TCVN 9436:2012', defaultPrice: 90000  },
-        { value: 'dat-dap-k98',    label: 'Đất đắp nền K98',                       standard: 'TCVN 9436:2012', defaultPrice: 110000 },
-        { value: 'dat-doi',        label: 'Đất đồi / phong hóa',                   standard: 'TCVN 5747:1993', defaultPrice: 70000  },
-        { value: 'dat-set',        label: 'Đất sét',                               standard: 'TCVN 5747:1993', defaultPrice: 80000  },
-        { value: 'dat-pha-cat',    label: 'Đất pha cát',                           standard: 'TCVN 5747:1993', defaultPrice: 85000  }
+        // ===== TCVN 5747:1993 — Phân loại đất địa kỹ thuật =====
+        { value: 'dat-5747-soi',
+          group: 'TCVN 5747:1993 — Phân loại địa kỹ thuật',
+          label: 'Đất hạt thô — đất sỏi (gravel soil)',
+          standard: 'TCVN 5747:1993',
+          specs: {
+            'Phân loại': 'Đất hạt thô — hàm lượng hạt > 2 mm chiếm > 50%',
+            'Tính chất': 'Thoát nước tốt, không trương nở',
+            'Khuyến nghị dùng': 'Đắp nền đường, lớp lọc thoát nước'
+          },
+          defaultPrice: 110000 },
+        { value: 'dat-5747-cat',
+          group: 'TCVN 5747:1993 — Phân loại địa kỹ thuật',
+          label: 'Đất hạt thô — đất cát (sandy soil)',
+          standard: 'TCVN 5747:1993',
+          specs: {
+            'Phân loại': 'Hạt 0.05 – 2 mm chiếm > 50%',
+            'Chỉ số dẻo (PI)': '< 7 (không dẻo)',
+            'Khuyến nghị dùng': 'Đắp nền, san lấp, lớp đệm'
+          },
+          defaultPrice: 85000 },
+        { value: 'dat-5747-bui',
+          group: 'TCVN 5747:1993 — Phân loại địa kỹ thuật',
+          label: 'Đất hạt mịn — đất bụi (silt)',
+          standard: 'TCVN 5747:1993',
+          specs: {
+            'Phân loại': 'Hạt 0.005 – 0.05 mm chiếm > 50%',
+            'Chỉ số dẻo (PI)': '7 – 17',
+            'Tính chất': 'Dễ tan rã khi gặp nước',
+            'Khuyến nghị dùng': 'Hạn chế dùng cho nền đường — chỉ làm lớp dưới'
+          },
+          defaultPrice: 70000 },
+        { value: 'dat-5747-set',
+          group: 'TCVN 5747:1993 — Phân loại địa kỹ thuật',
+          label: 'Đất hạt mịn — đất sét (clay)',
+          standard: 'TCVN 5747:1993',
+          specs: {
+            'Phân loại': 'Hạt < 0.005 mm chiếm > 50%',
+            'Chỉ số dẻo (PI)': '> 17',
+            'Tính chất': 'Trương nở khi ướt, co ngót khi khô',
+            'Khuyến nghị dùng': 'Lõi đập đất, lớp chống thấm'
+          },
+          defaultPrice: 80000 },
+        { value: 'dat-5747-pha-cat',
+          group: 'TCVN 5747:1993 — Phân loại địa kỹ thuật',
+          label: 'Đất pha cát (sandy clay/loam)',
+          standard: 'TCVN 5747:1993',
+          specs: {
+            'Phân loại': 'Đất hỗn hợp — cát 35–65% + sét/bụi',
+            'Chỉ số dẻo (PI)': '7 – 17',
+            'Khuyến nghị dùng': 'Đắp nền đường thông dụng'
+          },
+          defaultPrice: 85000 },
+        { value: 'dat-5747-huu-co',
+          group: 'TCVN 5747:1993 — Phân loại địa kỹ thuật',
+          label: 'Đất hữu cơ (top soil)',
+          standard: 'TCVN 5747:1993',
+          specs: {
+            'Hàm lượng hữu cơ': '> 10%',
+            'Tính chất': 'Lún lớn, không ổn định',
+            'Khuyến nghị dùng': 'Không dùng cho nền — chỉ phủ cây xanh, vườn'
+          },
+          defaultPrice: 50000 },
+
+        // ===== TCVN 4447:2012 — Cấp đất theo độ khó đào =====
+        { value: 'dat-4447-cap1',
+          group: 'TCVN 4447:2012 — Cấp đất (độ khó đào)',
+          label: 'Cấp đất I — đất tơi xốp',
+          standard: 'TCVN 4447:2012',
+          specs: {
+            'Đặc điểm': 'Đất cát rời, đất pha cát ẩm, đất bùn',
+            'Phương pháp đào': 'Cuốc xẻng nhẹ, máy đào nhỏ',
+            'Định mức đào (thủ công)': '~0.6 giờ công/m³',
+            'Khuyến nghị dùng': 'Đào san lấp, móng nông'
+          },
+          defaultPrice: 60000 },
+        { value: 'dat-4447-cap2',
+          group: 'TCVN 4447:2012 — Cấp đất (độ khó đào)',
+          label: 'Cấp đất II — đất chặt vừa',
+          standard: 'TCVN 4447:2012',
+          specs: {
+            'Đặc điểm': 'Đất sét pha cát, đất sét nhẹ, đất ruộng',
+            'Phương pháp đào': 'Cuốc chim, máy đào trung bình',
+            'Định mức đào (thủ công)': '~1.0 giờ công/m³',
+            'Khuyến nghị dùng': 'Đào móng công trình dân dụng'
+          },
+          defaultPrice: 70000 },
+        { value: 'dat-4447-cap3',
+          group: 'TCVN 4447:2012 — Cấp đất (độ khó đào)',
+          label: 'Cấp đất III — đất chặt',
+          standard: 'TCVN 4447:2012',
+          specs: {
+            'Đặc điểm': 'Đất sét nặng, đất khô cứng',
+            'Phương pháp đào': 'Cuốc chim, xà beng, máy đào lớn',
+            'Định mức đào (thủ công)': '~1.5 giờ công/m³',
+            'Khuyến nghị dùng': 'Đào móng sâu, hầm'
+          },
+          defaultPrice: 90000 },
+        { value: 'dat-4447-cap4',
+          group: 'TCVN 4447:2012 — Cấp đất (độ khó đào)',
+          label: 'Cấp đất IV — đất rất chặt + sỏi cuội',
+          standard: 'TCVN 4447:2012',
+          specs: {
+            'Đặc điểm': 'Đất pha sỏi cuội, đất phong hóa',
+            'Phương pháp đào': 'Máy đào hạng nặng, cần làm tơi trước',
+            'Định mức đào (thủ công)': '~2.5 giờ công/m³',
+            'Khuyến nghị dùng': 'Cần đánh giá riêng — chi phí đào cao'
+          },
+          defaultPrice: 110000 },
+
+        // ===== TCVN 9436:2012 — Đất nền đường bộ =====
+        { value: 'dat-9436-k90',
+          group: 'TCVN 9436:2012 — Đất đắp nền đường',
+          label: 'Đất đắp nền K90 (lớp đáy)',
+          standard: 'TCVN 9436:2012',
+          specs: {
+            'Độ chặt yêu cầu': 'K ≥ 0.90',
+            'CBR ngâm 4 ngày': '≥ 4%',
+            'Hàm lượng hữu cơ': '≤ 5%',
+            'Khuyến nghị dùng': 'Lớp đáy nền đường (≥ 80 cm dưới đáy áo đường)'
+          },
+          defaultPrice: 75000 },
+        { value: 'dat-9436-k95',
+          group: 'TCVN 9436:2012 — Đất đắp nền đường',
+          label: 'Đất đắp nền K95 (lớp dưới)',
+          standard: 'TCVN 9436:2012',
+          specs: {
+            'Độ chặt yêu cầu': 'K ≥ 0.95',
+            'CBR ngâm 4 ngày': '≥ 5%',
+            'Chỉ số dẻo (PI)': '≤ 18',
+            'Hàm lượng hữu cơ': '≤ 5%',
+            'Khuyến nghị dùng': 'Lớp dưới nền đường (30–80 cm dưới áo đường)'
+          },
+          defaultPrice: 95000 },
+        { value: 'dat-9436-k98',
+          group: 'TCVN 9436:2012 — Đất đắp nền đường',
+          label: 'Đất đắp nền K98 (lớp trên)',
+          standard: 'TCVN 9436:2012',
+          specs: {
+            'Độ chặt yêu cầu': 'K ≥ 0.98',
+            'CBR ngâm 4 ngày': '≥ 6% (cho cấp III, IV)',
+            'Chỉ số dẻo (PI)': '≤ 12',
+            'Hàm lượng hữu cơ': '≤ 5%',
+            'Khuyến nghị dùng': 'Lớp 30 cm sát đáy áo đường + đỉnh nền'
+          },
+          defaultPrice: 115000 },
+
+        // ===== Theo công dụng / nguồn gốc =====
+        { value: 'dat-san-lap',
+          group: 'Theo công dụng / nguồn gốc',
+          label: 'Đất san lấp thông dụng',
+          standard: 'TCVN 4447:2012',
+          specs: {
+            'Hàm lượng hữu cơ': '≤ 10%',
+            'Yêu cầu': 'Không yêu cầu đặc biệt về cường độ',
+            'Khuyến nghị dùng': 'San lấp mặt bằng, tôn tạo địa hình'
+          },
+          defaultPrice: 60000 },
+        { value: 'dat-doi',
+          group: 'Theo công dụng / nguồn gốc',
+          label: 'Đất đồi / phong hóa',
+          standard: 'TCVN 5747:1993',
+          specs: {
+            'Đặc điểm': 'Đất sét lẫn đá phong hóa, hàm lượng đá nhỏ ~10–30%',
+            'Khuyến nghị dùng': 'Đắp nền cấp III–IV, san lấp công nghiệp'
+          },
+          defaultPrice: 70000 }
       ]
     };
 
