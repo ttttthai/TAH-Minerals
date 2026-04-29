@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: tah-minerals
+    runtime: static
+    buildCommand: ""
+    staticPublishPath: ./
+    pullRequestPreviewsEnabled: false
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=0, must-revalidate
+    routes:
+      - type: rewrite
+        source: /
+        destination: /index.html
