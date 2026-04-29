@@ -82,9 +82,13 @@
       color: var(--text);
     }
     .field .hint {
-      font-size: 10px;
-      color: var(--muted);
-      margin-top: 2px;
+      font-size: 11px;
+      color: var(--primary-dark);
+      margin-top: 4px;
+      padding: 6px 8px;
+      background: var(--accent);
+      border-radius: 4px;
+      line-height: 1.35;
     }
     .field select,
     .field input {
@@ -456,6 +460,17 @@
       <!-- CARD 1: CONTRACT INFO -->
       <div class="card">
         <h2>Thông tin hợp đồng</h2>
+
+        <!-- 0. USE CASE -->
+        <div class="section">
+          <div class="section-title">0. Mục đích sử dụng (tuỳ chọn)</div>
+          <div class="field">
+            <select id="useCase">
+              <option value="">— Tất cả (không lọc) —</option>
+            </select>
+            <div class="hint" id="useCaseHint" style="display:none"></div>
+          </div>
+        </div>
 
         <!-- 1. MATERIAL -->
         <div class="section">
@@ -1278,6 +1293,85 @@
     const modeLabels = { land: 'Đường bộ', river: 'Đường sông', ocean: 'Đường biển' };
     const matLabels  = { sand: 'Cát', rock: 'Đá', soil: 'Đất' };
 
+    // ---- DANH MỤC MỤC ĐÍCH SỬ DỤNG ----
+    const useCases = [
+      // === Bê tông ===
+      { id: 'bt-m500',      group: 'Bê tông',     label: 'BTCT M500 (mác cao)' },
+      { id: 'bt-m400',      group: 'Bê tông',     label: 'BTCT M400 (mác cao)' },
+      { id: 'bt-m300',      group: 'Bê tông',     label: 'BTCT M300 (thông dụng)' },
+      { id: 'bt-m250',      group: 'Bê tông',     label: 'BTCT M250 (thông dụng)' },
+      { id: 'bt-m200',      group: 'Bê tông',     label: 'Bê tông M200 (lót, móng phụ)' },
+      { id: 'bt-dul',       group: 'Bê tông',     label: 'Bê tông dự ứng lực (DUL)' },
+      { id: 'bt-khoi-lon',  group: 'Bê tông',     label: 'Bê tông khối lớn (đập, móng lớn)' },
+      { id: 'bt-nhua',      group: 'Bê tông',     label: 'Bê tông nhựa / asphalt' },
+      // === Vữa ===
+      { id: 'vua-m100',     group: 'Vữa',         label: 'Vữa xây M100 (kết cấu chịu lực)' },
+      { id: 'vua-m75',      group: 'Vữa',         label: 'Vữa xây M75' },
+      { id: 'vua-m50',      group: 'Vữa',         label: 'Vữa xây M50 (tường thông dụng)' },
+      { id: 'vua-m25',      group: 'Vữa',         label: 'Vữa xây M25 (tường nhẹ)' },
+      { id: 'vua-to',       group: 'Vữa',         label: 'Vữa tô tường' },
+      { id: 'vua-hoan',     group: 'Vữa',         label: 'Vữa hoàn thiện / trát mỏng' },
+      // === Đường bộ ===
+      { id: 'duong-base',   group: 'Đường bộ',    label: 'Lớp móng trên — base course' },
+      { id: 'duong-subbase',group: 'Đường bộ',    label: 'Lớp móng dưới — sub-base' },
+      { id: 'nen-k98',      group: 'Đường bộ',    label: 'Đắp nền K98 (lớp trên)' },
+      { id: 'nen-k95',      group: 'Đường bộ',    label: 'Đắp nền K95 (lớp dưới)' },
+      { id: 'nen-k90',      group: 'Đường bộ',    label: 'Đắp đáy nền K90' },
+      // === Khác ===
+      { id: 'san-lap',      group: 'Công trình khác', label: 'San lấp mặt bằng' },
+      { id: 'ke-de',        group: 'Công trình khác', label: 'Kè đá / đê biển / gia cố taluy' }
+    ];
+
+    // Tương thích use case ↔ subMaterial
+    const useCaseCompat = {
+      'bt-m500':     { sand: ['cat-7570-tho'],                                              rock: ['da-7570-1x2-20'] },
+      'bt-m400':     { sand: ['cat-7570-tho'],                                              rock: ['da-7570-1x2-20','da-7570-1x2-25'] },
+      'bt-m300':     { sand: ['cat-7570-tho','cat-nghien'],                                  rock: ['da-7570-1x2-25','da-7570-2x4','da-1771-soi'] },
+      'bt-m250':     { sand: ['cat-7570-tho','cat-nghien'],                                  rock: ['da-7570-1x2-25','da-7570-2x4'] },
+      'bt-m200':     { sand: ['cat-7570-tho','cat-7570-min','cat-9205-to'],                  rock: ['da-7570-2x4','da-7570-4x6'] },
+      'bt-dul':      { sand: ['cat-7570-tho'],                                              rock: ['da-7570-1x2-20'] },
+      'bt-khoi-lon': { sand: ['cat-7570-tho','cat-7570-min'],                                rock: ['da-7570-2x4','da-7570-4x6'] },
+      'bt-nhua':     {                                                                      rock: ['da-mi-sang','da-mi-bui','da-7570-1x2-20'] },
+      'vua-m100':    { sand: ['cat-9205-to'] },
+      'vua-m75':     { sand: ['cat-9205-to','cat-9205-vua'] },
+      'vua-m50':     { sand: ['cat-9205-to','cat-9205-vua'] },
+      'vua-m25':     { sand: ['cat-9205-vua','cat-9205-nho'] },
+      'vua-to':      { sand: ['cat-9205-nho','cat-9205-min'] },
+      'vua-hoan':    { sand: ['cat-9205-min'] },
+      'duong-base':    { rock: ['da-8859-cp1-25','da-8859-cp1-375'] },
+      'duong-subbase': { rock: ['da-8859-cp2-375','da-8859-cp2-50'] },
+      'nen-k98':       { soil: ['dat-9436-k98','dat-5747-soi','dat-5747-cat','dat-5747-pha-cat'] },
+      'nen-k95':       { soil: ['dat-9436-k95','dat-5747-soi','dat-5747-cat','dat-5747-pha-cat','dat-doi'] },
+      'nen-k90':       { soil: ['dat-9436-k90','dat-doi','dat-san-lap'] },
+      'san-lap':       { sand: ['cat-san-lap','cat-bien'], soil: ['dat-san-lap','dat-doi','dat-5747-cat','dat-5747-pha-cat'] },
+      'ke-de':         { rock: ['da-1771-hoc','da-1771-5x7'] }
+    };
+
+    // Gợi ý ngắn cho từng use case
+    const useCaseHints = {
+      'bt-m500':     'Yêu cầu nghiêm: cát thô Mđl 2.0–3.3 + đá Dmax 20mm, đá gốc ≥ 100 MPa, Cl⁻ ≤ 0.05%',
+      'bt-m400':     'Cát thô Mđl ≥ 2.0 + đá 1×2 (Dmax 20–25), cường độ đá gốc ≥ 80 MPa',
+      'bt-m300':     'Cát thô hoặc cát nghiền + đá 1×2 hoặc 2×4',
+      'bt-m250':     'Cát thô + đá 1×2 hoặc 2×4',
+      'bt-m200':     'Có thể dùng cát mịn / cát to + đá 2×4 hoặc 4×6',
+      'bt-dul':      'Khắt khe nhất: Cl⁻ ≤ 0.01%, đá 1×2 Dmax 20mm, đá gốc ≥ 100 MPa',
+      'bt-khoi-lon': 'Đá lớn (4×6) giúp giảm nhiệt thuỷ hoá; cát mịn cũng dùng được',
+      'bt-nhua':     'Cốt liệu là đá mi sàng / mi bụi / đá 1×2 Dmax 20',
+      'vua-m100':    'Bắt buộc cát to (Mđl ≥ 2.0) — TCVN 9205:2012',
+      'vua-m75':     'Cát to hoặc vừa (Mđl ≥ 1.5)',
+      'vua-m50':     'Cát to hoặc vừa',
+      'vua-m25':     'Cát vừa hoặc nhỏ',
+      'vua-to':      'Cát nhỏ / mịn cho lớp tô tường',
+      'vua-hoan':    'Cát mịn (Mđl 0.6–0.7) cho lớp trát mỏng',
+      'duong-base':    'CPĐD loại I — CBR ≥ 100%, LA ≤ 35%, PI ≤ 6',
+      'duong-subbase': 'CPĐD loại II — CBR ≥ 80%, LA ≤ 40%',
+      'nen-k98':       'Đất phải đạt độ chặt K ≥ 0.98, CBR ≥ 6%, PI ≤ 12',
+      'nen-k95':       'Đất phải đạt K ≥ 0.95, CBR ≥ 5%, PI ≤ 18',
+      'nen-k90':       'Đất phải đạt K ≥ 0.90, CBR ≥ 4%',
+      'san-lap':       'Cát san lấp / đất san lấp / đất đồi — không yêu cầu cao',
+      'ke-de':         'Đá hộc 150–300mm hoặc đá 5×7, mác đá ≥ M600'
+    };
+
     // ---- DỮ LIỆU THEO VÙNG ----
     const regionLabels = {
       north:     'Miền Bắc',
@@ -1310,6 +1404,7 @@
 
     // ---- TRẠNG THÁI ----
     const state = {
+      useCase: '',
       material: '', subMaterial: '',
       quantity: '', unit: 'm3',
       mode: '', subTransport: '',
@@ -1355,6 +1450,39 @@
 
     function findItem(items, value) {
       return (items || []).find(i => i.value === value);
+    }
+
+    // ---- LỌC THEO USE CASE ----
+    function getCompatMaterials(useCaseId) {
+      if (!useCaseId) return ['sand', 'rock', 'soil'];
+      const c = useCaseCompat[useCaseId];
+      return c ? Object.keys(c) : [];
+    }
+    function getCompatSubMaterials(matKey) {
+      const all = subMaterials[matKey] || [];
+      if (!state.useCase) return all;
+      const compat = useCaseCompat[state.useCase];
+      if (!compat || !compat[matKey]) return [];
+      return all.filter(it => compat[matKey].includes(it.value));
+    }
+    function refreshMaterialOptions() {
+      const compat = getCompatMaterials(state.useCase);
+      const sel = $('material');
+      Array.from(sel.options).forEach(opt => {
+        if (!opt.value) return;
+        const ok = compat.includes(opt.value);
+        opt.disabled = !ok;
+        opt.text = (ok ? '' : '✕ ') + matLabels[opt.value] + ({sand:' (Sand)', rock:' (Rock)', soil:' (Soil)'}[opt.value]);
+      });
+      // Reset material nếu không tương thích
+      if (state.material && !compat.includes(state.material)) {
+        state.material = '';
+        sel.value = '';
+        state.subMaterial = '';
+        $('subMaterial').innerHTML = '<option value="">— Chọn nhóm trước —</option>';
+        $('subMaterial').disabled = true;
+        updateSpecCard();
+      }
     }
 
     // ---- HIỂN THỊ SPEC CARD THEO TCVN ----
@@ -1487,11 +1615,66 @@
     }
 
     // ---- BIND EVENTS ----
+    // ---- USE CASE: populate dropdown + bind change ----
+    (function populateUseCaseSelect() {
+      const sel = $('useCase');
+      let html = '<option value="">— Tất cả (không lọc) —</option>';
+      const groups = new Map();
+      for (const uc of useCases) {
+        if (!groups.has(uc.group)) groups.set(uc.group, []);
+        groups.get(uc.group).push(uc);
+      }
+      for (const [g, list] of groups) {
+        html += `<optgroup label="${g}">`;
+        html += list.map(u => `<option value="${u.id}">${u.label}</option>`).join('');
+        html += '</optgroup>';
+      }
+      sel.innerHTML = html;
+    })();
+
+    $('useCase').addEventListener('change', (e) => {
+      state.useCase = e.target.value;
+      const hint = $('useCaseHint');
+      if (state.useCase && useCaseHints[state.useCase]) {
+        hint.textContent = '💡 ' + useCaseHints[state.useCase];
+        hint.style.display = 'block';
+      } else {
+        hint.style.display = 'none';
+      }
+      refreshMaterialOptions();
+      // Lọc lại subMaterial nếu material đã chọn
+      if (state.material) {
+        const items = getCompatSubMaterials(state.material);
+        if (items.length === 0) {
+          state.subMaterial = '';
+          $('subMaterial').innerHTML = '<option value="">— Không có loại tương thích —</option>';
+          $('subMaterial').disabled = true;
+        } else {
+          fillSelect($('subMaterial'), items, '— Chọn loại cụ thể —');
+          // Reset nếu lựa chọn cũ không còn tương thích
+          if (state.subMaterial && !items.find(i => i.value === state.subMaterial)) {
+            state.subMaterial = '';
+          } else {
+            $('subMaterial').value = state.subMaterial;
+          }
+        }
+        updateSpecCard();
+      }
+      refreshAllRefs();
+      refreshSummary();
+    });
+
     $('material').addEventListener('change', (e) => {
       state.material = e.target.value;
       const sub = $('subMaterial');
       if (state.material) {
-        fillSelect(sub, subMaterials[state.material], '— Chọn loại cụ thể —');
+        const items = getCompatSubMaterials(state.material);
+        if (items.length === 0) {
+          sub.innerHTML = '<option value="">— Không có loại tương thích với mục đích đã chọn —</option>';
+          sub.disabled = true;
+        } else {
+          fillSelect(sub, items, '— Chọn loại cụ thể —');
+        }
       } else {
         sub.innerHTML = '<option value="">— Chọn nhóm trước —</option>';
         sub.disabled = true;
