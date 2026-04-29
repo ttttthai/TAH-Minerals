@@ -1891,11 +1891,8 @@
     });
 
     // ---- AUTOCOMPLETE ĐỊA ĐIỂM (Nominatim / OpenStreetMap, ưu tiên VN) ----
-    function setupLocationAutocomplete(inputId, suggestionsId, spinnerId, mapBtnId, stateKey) {
-      const input = $(inputId);
-      const sugBox = $(suggestionsId);
-      const spinner = $(spinnerId);
-      const mapBtn = $(mapBtnId);
+    function setupLocationAutocomplete(opts) {
+      const { input, sugBox, spinner, mapBtn, onChange } = opts;
       let timer = null;
       let activeIdx = -1;
       let items = [];
@@ -1948,20 +1945,9 @@
         input.value = r.display_name;
         const lat = parseFloat(r.lat), lon = parseFloat(r.lon);
         coords = { lat, lon };
-        state[stateKey] = r.display_name;
-        state[stateKey + 'Coords'] = { lat, lon };
         sugBox.classList.remove('show');
         updateMapLink();
-        // Origin = mỏ → quyết định region cho toàn bộ giá
-        if (stateKey === 'origin') {
-          state.region = detectRegion(lat);
-          applyRegionDefaults();
-          refreshAllRefs();
-        }
-        // Reset cờ thủ công để được auto-tính lại cự ly
-        state.distanceManual = false;
-        tryAutoFillDistance();
-        refreshSummary();
+        onChange(r.display_name, { lat, lon }, true);
       };
 
       const search = async (q) => {
@@ -1981,15 +1967,9 @@
 
       input.addEventListener('input', (e) => {
         const v = e.target.value;
-        state[stateKey] = v;
         coords = null;
-        state[stateKey + 'Coords'] = null;
         updateMapLink();
-        if (stateKey === 'origin' && !v.trim()) {
-          state.region = null;
-          refreshAllRefs();
-        }
-        refreshSummary();
+        onChange(v, null, false);
         clearTimeout(timer);
         if (v.trim().length < 2) {
           sugBox.classList.remove('show');
@@ -2027,15 +2007,100 @@
       });
     }
 
-    setupLocationAutocomplete('origin',      'origin-suggestions',      'origin-spinner',      'origin-map',      'origin');
-    setupLocationAutocomplete('destination', 'destination-suggestions', 'destination-spinner', 'destination-map', 'destination');
+    setupLocationAutocomplete({
+      input:    $('origin'),
+      sugBox:   $('origin-suggestions'),
+      spinner:  $('origin-spinner'),
+      mapBtn:   $('origin-map'),
+      onChange: (value, c) => {
+        state.origin = value;
+        state.originCoords = c;
+        if (c) {
+          state.region = detectRegion(c.lat);
+          applyRegionDefaults();
+          refreshAllRefs();
+        } else if (!value.trim()) {
+          state.region = null;
+          refreshAllRefs();
+        }
+        state.distanceManual = false;
+        tryAutoFillDistance();
+        refreshSummary();
+      }
+    });
+    setupLocationAutocomplete({
+      input:    $('destination'),
+      sugBox:   $('destination-suggestions'),
+      spinner:  $('destination-spinner'),
+      mapBtn:   $('destination-map'),
+      onChange: (value, c) => {
+        state.destination = value;
+        state.destinationCoords = c;
+        state.distanceManual = false;
+        tryAutoFillDistance();
+        refreshSummary();
+      }
+    });
 
     // ---- MULTI-LEG TRANSPORT ----
-    const additionalLegs = []; // mỗi phần tử: { mode, subTransport, origin, destination, distance, rate, fixed }
+    // Mỗi leg: { mode, subTransport, origin, destination, originCoords, destinationCoords,
+    //           distance, distanceManual, rate, fixed }
+    const additionalLegs = [];
 
     function modeOptions(mode) {
       return (subTransports[mode] || []).map(s =>
         `<option value="${s.value}">${s.label}</option>`).join('');
+    }
+
+    function setLegDistanceMethod(card, cls, txt) {
+      const el = card.querySelector('.distance-method');
+      if (!el) return;
+      el.className = 'distance-method show ' + cls;
+      el.querySelector('.text').textContent = txt;
+    }
+    function hideLegDistanceMethod(card) {
+      const el = card.querySelector('.distance-method');
+      if (el) el.className = 'distance-method';
+    }
+
+    async function tryAutoFillLegDistance(legIdx) {
+      const leg = additionalLegs[legIdx];
+      if (!leg) return;
+      const card = document.querySelector(`.leg-card[data-leg="${legIdx}"]`);
+      if (!card) return;
+      const distInput = card.querySelector('input[data-act="distance"]');
+      if (!leg.originCoords || !leg.destinationCoords || !leg.mode) {
+        hideLegDistanceMethod(card);
+        return;
+      }
+      if (leg.distanceManual) return;
+
+      const oc = leg.originCoords, dc = leg.destinationCoords;
+      if (leg.mode === 'land') {
+        setLegDistanceMethod(card, 'loading', 'Đang tính tuyến đường bộ thực (OSRM)...');
+        const km = await osrmRouteKm(oc.lat, oc.lon, dc.lat, dc.lon);
+        if (leg.distanceManual) return;
+        if (km != null) {
+          const adj = Math.max(1, Math.round(km));
+          leg.distance = String(adj);
+          distInput.value = adj;
+          setLegDistanceMethod(card, 'real', `Tuyến đường bộ thực qua OSRM (${fmtN(adj)} km)`);
+        } else {
+          const km2 = haversineKm(oc.lat, oc.lon, dc.lat, dc.lon);
+          const adj = Math.max(1, Math.round(km2 * modeDistMul.land));
+          leg.distance = String(adj);
+          distInput.value = adj;
+          setLegDistanceMethod(card, 'error', `OSRM lỗi — chim bay × 1.3 (${fmtN(adj)} km)`);
+        }
+      } else {
+        const km  = haversineKm(oc.lat, oc.lon, dc.lat, dc.lon);
+        const mul = modeDistMul[leg.mode] || 1;
+        const adj = Math.max(1, Math.round(km * mul));
+        leg.distance = String(adj);
+        distInput.value = adj;
+        const desc = leg.mode === 'river' ? 'sông' : 'biển';
+        setLegDistanceMethod(card, 'approx', `Chim bay × ${mul} đường ${desc} (${fmtN(adj)} km)`);
+      }
     }
 
     function renderLegs() {
@@ -2064,34 +2129,49 @@
               <label>Loại phương tiện</label>
               <select data-act="vehicle" data-leg="${i}" ${leg.mode?'':'disabled'}>${veh}</select>
             </div>
-            <div class="row">
-              <div class="field">
-                <label>Điểm xuất</label>
-                <input type="text" data-act="origin" data-leg="${i}" value="${leg.origin || ''}" placeholder="VD: Cảng Cát Lái" />
+            <div class="field">
+              <label>Điểm xuất</label>
+              <div class="loc-wrap">
+                <div class="loc-input">
+                  <input type="text" data-act="origin" data-leg="${i}" value="${(leg.origin||'').replace(/"/g,'&quot;')}" placeholder="Gõ tên cảng / địa danh..." autocomplete="off" />
+                  <div class="loc-spinner" data-spinner="origin" data-leg="${i}"></div>
+                  <div class="suggestions" data-suggestions="origin" data-leg="${i}"></div>
+                </div>
+                <a class="map-btn disabled" data-mapbtn="origin" data-leg="${i}" target="_blank" rel="noopener" title="Mở Google Maps">🗺️</a>
               </div>
-              <div class="field">
-                <label>Điểm đến</label>
-                <input type="text" data-act="dest" data-leg="${i}" value="${leg.destination || ''}" placeholder="VD: KCN Long An" />
+            </div>
+            <div class="field">
+              <label>Điểm đến</label>
+              <div class="loc-wrap">
+                <div class="loc-input">
+                  <input type="text" data-act="dest" data-leg="${i}" value="${(leg.destination||'').replace(/"/g,'&quot;')}" placeholder="Gõ tên cảng / địa danh..." autocomplete="off" />
+                  <div class="loc-spinner" data-spinner="dest" data-leg="${i}"></div>
+                  <div class="suggestions" data-suggestions="dest" data-leg="${i}"></div>
+                </div>
+                <a class="map-btn disabled" data-mapbtn="dest" data-leg="${i}" target="_blank" rel="noopener" title="Mở Google Maps">🗺️</a>
+              </div>
+            </div>
+            <div class="field">
+              <label>Cự ly (km)</label>
+              <input type="number" data-act="distance" data-leg="${i}" value="${leg.distance || ''}" min="0" step="1" placeholder="Tự tính khi đủ thông tin" />
+              <div class="distance-method">
+                <span class="dot"></span><span class="text"></span>
               </div>
             </div>
             <div class="row">
-              <div class="field">
-                <label>Cự ly (km)</label>
-                <input type="number" data-act="distance" data-leg="${i}" value="${leg.distance || ''}" min="0" step="1" placeholder="VD: 30" />
-              </div>
               <div class="field">
                 <label>Cước (₫/m³/km)</label>
                 <input type="number" data-act="rate" data-leg="${i}" value="${leg.rate || ''}" min="0" step="100" placeholder="VD: 2500" />
               </div>
-            </div>
-            <div class="field">
-              <label>Phí cố định / chuyến (₫)</label>
-              <input type="number" data-act="fixed" data-leg="${i}" value="${leg.fixed || 0}" min="0" step="10000" />
+              <div class="field">
+                <label>Phí cố định / chuyến (₫)</label>
+                <input type="number" data-act="fixed" data-leg="${i}" value="${leg.fixed || 0}" min="0" step="10000" />
+              </div>
             </div>
           </div>`;
       }).join('');
 
-      // Đặt giá trị select vehicle (vì innerHTML không giữ selected nếu thiếu attr)
+      // Đặt giá trị select vehicle
       additionalLegs.forEach((leg, i) => {
         if (leg.mode && leg.subTransport) {
           const sel = container.querySelector(`select[data-act="vehicle"][data-leg="${i}"]`);
@@ -2099,7 +2179,7 @@
         }
       });
 
-      // Bind events (delegation tại container)
+      // Bind generic events
       container.querySelectorAll('[data-act]').forEach(el => {
         const act = el.dataset.act;
         const i   = parseInt(el.dataset.leg, 10);
@@ -2110,6 +2190,7 @@
             leg.mode = el.dataset.mode;
             leg.subTransport = '';
             renderLegs();
+            tryAutoFillLegDistance(i);
           });
         } else if (act === 'vehicle') {
           el.addEventListener('change', (e) => {
@@ -2131,13 +2212,53 @@
             additionalLegs.splice(i, 1);
             renderLegs();
           });
-        } else {
+        } else if (act === 'distance') {
           el.addEventListener('input', (e) => {
-            const k = { origin: 'origin', dest: 'destination', distance: 'distance', rate: 'rate', fixed: 'fixed' }[act];
-            if (k) leg[k] = e.target.value;
+            leg.distance = e.target.value;
+            leg.distanceManual = true;
+            const card = el.closest('.leg-card');
+            hideLegDistanceMethod(card);
           });
+        } else if (act === 'rate' || act === 'fixed') {
+          el.addEventListener('input', (e) => { leg[act] = e.target.value; });
         }
       });
+
+      // Setup autocomplete cho origin/dest của từng leg
+      additionalLegs.forEach((leg, i) => {
+        const card = container.querySelector(`.leg-card[data-leg="${i}"]`);
+        if (!card) return;
+        const oInput = card.querySelector('input[data-act="origin"]');
+        const dInput = card.querySelector('input[data-act="dest"]');
+        const oSugBox = card.querySelector('[data-suggestions="origin"]');
+        const dSugBox = card.querySelector('[data-suggestions="dest"]');
+        const oSpinner = card.querySelector('[data-spinner="origin"]');
+        const dSpinner = card.querySelector('[data-spinner="dest"]');
+        const oMapBtn = card.querySelector('[data-mapbtn="origin"]');
+        const dMapBtn = card.querySelector('[data-mapbtn="dest"]');
+
+        setupLocationAutocomplete({
+          input: oInput, sugBox: oSugBox, spinner: oSpinner, mapBtn: oMapBtn,
+          onChange: (value, c) => {
+            leg.origin = value;
+            leg.originCoords = c;
+            leg.distanceManual = false;
+            tryAutoFillLegDistance(i);
+          }
+        });
+        setupLocationAutocomplete({
+          input: dInput, sugBox: dSugBox, spinner: dSpinner, mapBtn: dMapBtn,
+          onChange: (value, c) => {
+            leg.destination = value;
+            leg.destinationCoords = c;
+            leg.distanceManual = false;
+            tryAutoFillLegDistance(i);
+          }
+        });
+      });
+
+      // Trigger lại auto-fill cho mỗi leg đã có đủ data (sau khi re-render)
+      additionalLegs.forEach((_, i) => tryAutoFillLegDistance(i));
     }
 
     $('addLegBtn').addEventListener('click', () => {
