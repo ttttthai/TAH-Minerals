@@ -300,6 +300,59 @@
       margin-left: 6px;
     }
 
+    /* Multi-leg transport */
+    .leg-card {
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      margin-top: 8px;
+      background: #fafafa;
+    }
+    .leg-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .leg-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: 0.3px;
+    }
+    .leg-remove {
+      padding: 3px 8px;
+      border: 1px solid #fecaca;
+      background: white;
+      color: #991b1b;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .leg-remove:hover { background: #fee2e2; }
+    .add-leg-btn {
+      width: 100%;
+      padding: 9px;
+      border: 1px dashed var(--primary);
+      background: white;
+      color: var(--primary);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .add-leg-btn:hover { background: var(--accent); }
+    .leg-empty {
+      font-size: 11px;
+      color: var(--muted);
+      font-style: italic;
+      text-align: center;
+      padding: 4px;
+    }
+
     /* Spec card cho TCVN */
     .spec-card {
       margin-top: 6px;
@@ -510,7 +563,7 @@
 
         <!-- 2. TRANSPORT -->
         <div class="section">
-          <div class="section-title">2. Phương thức vận chuyển</div>
+          <div class="section-title">2. Vận chuyển — Chặng 1 (chính)</div>
           <div class="transport-modes">
             <div class="mode-btn" data-mode="land">
               <span class="mode-icon">🚛</span>
@@ -559,6 +612,15 @@
               <a class="map-btn disabled" id="destination-map" target="_blank" rel="noopener" title="Mở Google Maps">🗺️</a>
             </div>
           </div>
+        </div>
+
+        <!-- 3. ADDITIONAL LEGS -->
+        <div class="section">
+          <div class="section-title">3. Chặng vận chuyển bổ sung (đa chặng)</div>
+          <div id="legsContainer">
+            <div class="leg-empty">Chưa có chặng phụ. Thêm khi cần đa chặng (VD: mỏ → cảng → công trình).</div>
+          </div>
+          <button class="add-leg-btn" id="addLegBtn" type="button">+ Thêm chặng vận chuyển</button>
         </div>
       </div>
 
@@ -1891,6 +1953,125 @@
     setupLocationAutocomplete('origin',      'origin-suggestions',      'origin-spinner',      'origin-map',      'origin');
     setupLocationAutocomplete('destination', 'destination-suggestions', 'destination-spinner', 'destination-map', 'destination');
 
+    // ---- MULTI-LEG TRANSPORT ----
+    const additionalLegs = []; // mỗi phần tử: { mode, subTransport, origin, destination, distance, rate, fixed }
+
+    function modeOptions(mode) {
+      return (subTransports[mode] || []).map(s =>
+        `<option value="${s.value}">${s.label}</option>`).join('');
+    }
+
+    function renderLegs() {
+      const container = $('legsContainer');
+      if (additionalLegs.length === 0) {
+        container.innerHTML = '<div class="leg-empty">Chưa có chặng phụ. Thêm khi cần đa chặng (VD: mỏ → cảng → công trình).</div>';
+        return;
+      }
+      container.innerHTML = additionalLegs.map((leg, i) => {
+        const num = i + 2;
+        const veh = leg.mode
+          ? `<option value="">— Chọn —</option>${modeOptions(leg.mode)}`
+          : '<option value="">— Chọn phương thức trước —</option>';
+        return `
+          <div class="leg-card" data-leg="${i}">
+            <div class="leg-header">
+              <span class="leg-title">Chặng ${num}</span>
+              <button class="leg-remove" data-act="remove" data-leg="${i}" type="button">✕ Xoá</button>
+            </div>
+            <div class="transport-modes">
+              <div class="mode-btn ${leg.mode==='land'?'active':''}"  data-act="mode" data-leg="${i}" data-mode="land"><span class="mode-icon">🚛</span>Đường bộ</div>
+              <div class="mode-btn ${leg.mode==='river'?'active':''}" data-act="mode" data-leg="${i}" data-mode="river"><span class="mode-icon">⛵</span>Đường sông</div>
+              <div class="mode-btn ${leg.mode==='ocean'?'active':''}" data-act="mode" data-leg="${i}" data-mode="ocean"><span class="mode-icon">🚢</span>Đường biển</div>
+            </div>
+            <div class="field">
+              <label>Loại phương tiện</label>
+              <select data-act="vehicle" data-leg="${i}" ${leg.mode?'':'disabled'}>${veh}</select>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label>Điểm xuất</label>
+                <input type="text" data-act="origin" data-leg="${i}" value="${leg.origin || ''}" placeholder="VD: Cảng Cát Lái" />
+              </div>
+              <div class="field">
+                <label>Điểm đến</label>
+                <input type="text" data-act="dest" data-leg="${i}" value="${leg.destination || ''}" placeholder="VD: KCN Long An" />
+              </div>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label>Cự ly (km)</label>
+                <input type="number" data-act="distance" data-leg="${i}" value="${leg.distance || ''}" min="0" step="1" placeholder="VD: 30" />
+              </div>
+              <div class="field">
+                <label>Cước (₫/m³/km)</label>
+                <input type="number" data-act="rate" data-leg="${i}" value="${leg.rate || ''}" min="0" step="100" placeholder="VD: 2500" />
+              </div>
+            </div>
+            <div class="field">
+              <label>Phí cố định / chuyến (₫)</label>
+              <input type="number" data-act="fixed" data-leg="${i}" value="${leg.fixed || 0}" min="0" step="10000" />
+            </div>
+          </div>`;
+      }).join('');
+
+      // Đặt giá trị select vehicle (vì innerHTML không giữ selected nếu thiếu attr)
+      additionalLegs.forEach((leg, i) => {
+        if (leg.mode && leg.subTransport) {
+          const sel = container.querySelector(`select[data-act="vehicle"][data-leg="${i}"]`);
+          if (sel) sel.value = leg.subTransport;
+        }
+      });
+
+      // Bind events (delegation tại container)
+      container.querySelectorAll('[data-act]').forEach(el => {
+        const act = el.dataset.act;
+        const i   = parseInt(el.dataset.leg, 10);
+        const leg = additionalLegs[i];
+        if (!leg) return;
+        if (act === 'mode') {
+          el.addEventListener('click', () => {
+            leg.mode = el.dataset.mode;
+            leg.subTransport = '';
+            renderLegs();
+          });
+        } else if (act === 'vehicle') {
+          el.addEventListener('change', (e) => {
+            leg.subTransport = e.target.value;
+            const item = findItem(subTransports[leg.mode], leg.subTransport);
+            if (item) {
+              const r = state.region
+                ? getTransRateByRegion(leg.mode, leg.subTransport, state.region)
+                : item.defaultRate;
+              leg.rate  = r;
+              leg.fixed = item.defaultFixed;
+              const card = el.closest('.leg-card');
+              card.querySelector('input[data-act="rate"]').value  = leg.rate;
+              card.querySelector('input[data-act="fixed"]').value = leg.fixed;
+            }
+          });
+        } else if (act === 'remove') {
+          el.addEventListener('click', () => {
+            additionalLegs.splice(i, 1);
+            renderLegs();
+          });
+        } else {
+          el.addEventListener('input', (e) => {
+            const k = { origin: 'origin', dest: 'destination', distance: 'distance', rate: 'rate', fixed: 'fixed' }[act];
+            if (k) leg[k] = e.target.value;
+          });
+        }
+      });
+    }
+
+    $('addLegBtn').addEventListener('click', () => {
+      additionalLegs.push({
+        mode: '', subTransport: '',
+        origin: '', destination: '',
+        distance: '', rate: '', fixed: 0
+      });
+      renderLegs();
+    });
+
     // ---- TÍNH CHI PHÍ ----
     function showError(msg) {
       const el = $('errorAlert');
@@ -1938,9 +2119,30 @@
       const mineTotal   = mineCost + taxCost + envCost + loadingCost;
 
       // ---- B. Chi phí vận chuyển ----
-      const transportVar   = qty * distance * trRate;
-      const transportFixed = trFixed; // 1 chuyến (đơn giản hóa cho v1)
-      const transportTotal = transportVar + transportFixed;
+      const leg1Var   = qty * distance * trRate;
+      const leg1Fixed = trFixed;
+      const leg1Total = leg1Var + leg1Fixed;
+
+      // Chặng phụ (multi-leg)
+      const legBreakdowns = [];
+      let additionalLegsTotal = 0;
+      additionalLegs.forEach((leg, idx) => {
+        const d = parseFloat(leg.distance) || 0;
+        const r = parseFloat(leg.rate) || 0;
+        const f = parseFloat(leg.fixed) || 0;
+        const variable = qty * d * r;
+        const total    = variable + f;
+        additionalLegsTotal += total;
+        legBreakdowns.push({
+          num: idx + 2,
+          modeLabel: modeLabels[leg.mode] || '?',
+          vehicleLabel: findItem(subTransports[leg.mode], leg.subTransport)?.label || '?',
+          route: [leg.origin, leg.destination].filter(Boolean).join(' → ') || '—',
+          d, r, f, variable, total
+        });
+      });
+
+      const transportTotal = leg1Total + additionalLegsTotal;
 
       // ---- C. Hao hụt + Hoa hồng + Lợi nhuận ----
       const baseCost       = mineTotal + transportTotal;
@@ -1967,10 +2169,28 @@
       $('b-loading').textContent        = fmt(loadingCost);
       $('b-mine-total').textContent     = fmt(mineTotal);
 
-      $('f-transport').textContent      = `${fmtN(qty)} ${u} × ${fmtN(distance)} km × ${fmt(trRate)}/${u}/km`;
-      $('b-transport').textContent      = fmt(transportVar);
-      $('f-transport-fixed').textContent= `Phí cố định cho phương tiện ${findItem(subTransports[state.mode], state.subTransport)?.label || ''}`;
-      $('b-transport-fixed').textContent= fmt(transportFixed);
+      // Chặng 1
+      $('f-transport').textContent      = `Chặng 1 — ${fmtN(qty)} ${u} × ${fmtN(distance)} km × ${fmt(trRate)}/${u}/km`;
+      $('b-transport').textContent      = fmt(leg1Var);
+      $('f-transport-fixed').textContent= `Phí cố định Chặng 1 — ${findItem(subTransports[state.mode], state.subTransport)?.label || ''}`;
+      $('b-transport-fixed').textContent= fmt(leg1Fixed);
+
+      // Render thêm các chặng phụ vào breakdown (chèn trước hàng tổng)
+      const transTotalRow = $('b-transport-total').closest('.breakdown-row');
+      // Xoá các hàng chặng phụ cũ
+      document.querySelectorAll('.extra-leg-row').forEach(el => el.remove());
+      // Chèn từng chặng phụ
+      legBreakdowns.forEach(lb => {
+        const rowVar = document.createElement('div');
+        rowVar.className = 'breakdown-row extra-leg-row';
+        rowVar.innerHTML = `
+          <span class="label">Chặng ${lb.num} — ${lb.modeLabel} (${lb.vehicleLabel})
+            <span class="formula">${lb.route} · ${fmtN(qty)} ${u} × ${fmtN(lb.d)} km × ${fmt(lb.r)}/${u}/km + ${fmt(lb.f)} cố định</span>
+          </span>
+          <span class="value">${fmt(lb.total)}</span>`;
+        transTotalRow.parentNode.insertBefore(rowVar, transTotalRow);
+      });
+
       $('b-transport-total').textContent= fmt(transportTotal);
 
       $('f-loss').textContent           = `${lossPct}% × (chi phí tại mỏ + vận chuyển)`;
@@ -1997,6 +2217,7 @@
 
     refreshSummary();
     refreshAllRefs();
+    renderLegs();
   </script>
 </body>
 </html>
