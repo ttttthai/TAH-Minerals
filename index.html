@@ -288,7 +288,9 @@
     .input-prefix {
       position: relative;
     }
-    .input-prefix input { padding-right: 36px; }
+    .input-prefix input { padding-right: 64px; }
+    /* Trường có suffix dài hơn (₫/m³/km) cần padding rộng hơn */
+    .input-prefix.long input { padding-right: 78px; }
 
     /* Cost field with regional reference dropdown */
     .cost-row { display: flex; gap: 6px; align-items: stretch; }
@@ -727,6 +729,12 @@
       font-size: 11px;
       color: var(--muted);
       pointer-events: none;
+      white-space: nowrap;
+      background: white;
+      padding-left: 4px;
+      max-width: 70px;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* Location autocomplete + Maps link */
@@ -991,7 +999,7 @@
           <div class="field">
             <label for="transportRate">Cước vận chuyển</label>
             <div class="cost-row">
-              <div class="input-prefix">
+              <div class="input-prefix long">
                 <input type="number" id="transportRate" min="0" step="100" placeholder="0" />
                 <span class="suffix">₫/m³/km</span>
               </div>
