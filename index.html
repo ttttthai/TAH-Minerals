@@ -573,6 +573,19 @@
       color: var(--success);
       font-variant-numeric: tabular-nums;
     }
+    .nearest-more-btn {
+      width: 100%;
+      margin-top: 6px;
+      padding: 7px;
+      border: 1px dashed var(--success);
+      background: white;
+      color: var(--success);
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .nearest-more-btn:hover { background: #f0fdf4; }
 
     /* Province selector row */
     .province-row {
@@ -3291,18 +3304,35 @@
       return 2 * R * Math.asin(Math.sqrt(a));
     }
 
+    let nearestShowCount = 8;
+    let nearestRankedCache = []; // toàn bộ mỏ ranked để bấm "Xem thêm" không cần tính lại
+    let nearestLastKey = '';
+
     window.maybeShowNearest = function() {
       const dest = window.__getDestinationCoords && window.__getDestinationCoords();
       const mat  = window.__getCurrentMaterial && window.__getCurrentMaterial();
       const panel = $('nearestPanel');
       if (!dest || !mat) { panel.classList.remove('show'); return; }
-      const ranked = (window.MINES_DB || [])
-        .filter(m => m.material === mat && typeof m.lat === 'number' && typeof m.lon === 'number')
-        .map(m => ({ ...m, dist: haversineKm(dest.lat, dest.lon, m.lat, m.lon) }))
-        .sort((a, b) => a.dist - b.dist)
-        .slice(0, 8);
-      if (!ranked.length) { panel.classList.remove('show'); return; }
-      $('nearestList').innerHTML = ranked.map(m => `
+      // Reset show count khi destination hoặc material đổi
+      const key = `${dest.lat},${dest.lon}|${mat}`;
+      if (key !== nearestLastKey) {
+        nearestShowCount = 8;
+        nearestLastKey = key;
+        nearestRankedCache = (window.MINES_DB || [])
+          .filter(m => m.material === mat && typeof m.lat === 'number' && typeof m.lon === 'number')
+          .map(m => ({ ...m, dist: haversineKm(dest.lat, dest.lon, m.lat, m.lon) }))
+          .sort((a, b) => a.dist - b.dist);
+      }
+      renderNearestList();
+    };
+
+    function renderNearestList() {
+      const panel = $('nearestPanel');
+      const total = nearestRankedCache.length;
+      if (!total) { panel.classList.remove('show'); return; }
+      const slice = nearestRankedCache.slice(0, nearestShowCount);
+      const remaining = total - slice.length;
+      let html = slice.map(m => `
         <div class="nearest-item" data-id="${m.id}">
           <div>
             <div class="nm-name">${m.name}</div>
@@ -3311,11 +3341,28 @@
           <div class="nm-dist">${fmtN(Math.round(m.dist))} km</div>
         </div>
       `).join('');
+      if (remaining > 0) {
+        html += `<button class="nearest-more-btn" id="nearestMoreBtn" type="button">▾ Xem thêm 8 mỏ tiếp theo (còn ${remaining})</button>`;
+      } else if (slice.length > 8) {
+        html += `<button class="nearest-more-btn" id="nearestMoreBtn" type="button">▴ Thu gọn về 8 mỏ gần nhất</button>`;
+      }
+      $('nearestList').innerHTML = html;
       $('nearestList').querySelectorAll('.nearest-item').forEach(it => {
         it.addEventListener('click', () => selectMine(it.dataset.id));
       });
+      const moreBtn = $('nearestMoreBtn');
+      if (moreBtn) {
+        moreBtn.addEventListener('click', () => {
+          if (remaining > 0) {
+            nearestShowCount += 8;
+          } else {
+            nearestShowCount = 8;
+          }
+          renderNearestList();
+        });
+      }
       panel.classList.add('show');
-    };
+    }
   })();
   </script>
 </body>
