@@ -1123,7 +1123,7 @@
         </div>
 
         <div class="breakdown-section-title">D. Tổng cộng</div>
-        <div class="breakdown-row total">
+        <div class="breakdown-row">
           <span class="label">Giá trước VAT</span>
           <span class="value" id="b-pre-vat">—</span>
         </div>
@@ -1132,6 +1132,26 @@
             <span class="formula" id="f-vat"></span>
           </span>
           <span class="value" id="b-vat">—</span>
+        </div>
+
+        <div class="breakdown-section-title">E. Phân bổ giá trị hợp đồng</div>
+        <div class="breakdown-row">
+          <span class="label">Giá trị HĐ — Vật liệu
+            <span class="formula" id="f-contract-mat"></span>
+          </span>
+          <span class="value" id="b-contract-mat">—</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="label">Giá trị HĐ — Vận chuyển
+            <span class="formula" id="f-contract-tran"></span>
+          </span>
+          <span class="value" id="b-contract-tran">—</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="label">Giá trị HĐ — Thuế &amp; phí
+            <span class="formula" id="f-contract-tax"></span>
+          </span>
+          <span class="value" id="b-contract-tax">—</span>
         </div>
         <div class="breakdown-row grand-total">
           <span class="label">TỔNG GIÁ TRỊ HỢP ĐỒNG</span>
@@ -2754,6 +2774,26 @@
       $('b-pre-vat').textContent        = fmt(preVat);
       $('f-vat').textContent            = `${vatPct}% × giá trước VAT`;
       $('b-vat').textContent            = fmt(vatCost);
+
+      // ---- E. PHÂN BỔ GIÁ TRỊ HỢP ĐỒNG ----
+      // Mỗi cấu phần (vật liệu, vận chuyển, thuế-phí) được nhân với cùng hệ số bao gồm
+      // hao hụt + hoa hồng + lợi nhuận + VAT. Tổng 3 phần = grandTotal.
+      const taxFeeBase  = taxCost + envCost + loadingCost;        // thuế TN + phí MT + phí bốc xếp
+      const matBase     = mineCost;                                // riêng đơn giá tại mỏ
+      const tranBase    = transportTotal;                          // tổng vận chuyển
+      // Hệ số chung: 1 + (hao hụt + hh + ln)% rồi × (1 + VAT%)
+      const overheadMul = (1 + (lossPct + commPct + marginPct) / 100) * (1 + vatPct / 100);
+      const contractMat  = matBase    * overheadMul;
+      const contractTran = tranBase   * overheadMul;
+      const contractTax  = taxFeeBase * overheadMul;
+
+      $('f-contract-mat').textContent  = `Đơn giá tại mỏ × hệ số (1 + ${(lossPct+commPct+marginPct).toFixed(1)}%) × (1 + ${vatPct}% VAT)`;
+      $('b-contract-mat').textContent  = fmt(contractMat);
+      $('f-contract-tran').textContent = `Tổng cước vận chuyển × hệ số nói trên`;
+      $('b-contract-tran').textContent = fmt(contractTran);
+      $('f-contract-tax').textContent  = `Thuế tài nguyên + phí môi trường + bốc xếp × hệ số`;
+      $('b-contract-tax').textContent  = fmt(contractTax);
+
       $('b-grand-total').textContent    = fmt(grandTotal);
       $('b-unit-price').textContent     = fmt(unitPrice) + `/${u}`;
 
