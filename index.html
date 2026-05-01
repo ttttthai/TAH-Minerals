@@ -1703,8 +1703,36 @@
       distance: '', origin: '', destination: '',
       originCoords: null, destinationCoords: null,
       region: null,
-      distanceManual: false   // true nếu user tự nhập đè
+      province: null,         // slug trong PROVINCES_DB
+      distanceManual: false
     };
+
+    // Map sub-material slug → province price key (sand_concrete/mortar/fill, rock_1x2/2x4/4x6/riprap, soil_fill/K95)
+    function subMaterialToProvinceKey(matKey, subKey) {
+      if (!subKey) return null;
+      // CÁT
+      if (matKey === 'sand') {
+        if (/^cat-7570-tho$|^cat-9205-to$/.test(subKey))                    return 'sand_concrete';
+        if (/^cat-7570-min$|^cat-9205-(vua|nho|min)$/.test(subKey))         return 'sand_mortar';
+        if (/^cat-bien$|^cat-nghien$|^cat-duc$/.test(subKey))               return 'sand_concrete';
+        if (subKey === 'cat-san-lap')                                       return 'sand_fill';
+        return 'sand_concrete';
+      }
+      // ĐÁ
+      if (matKey === 'rock') {
+        if (/^da-7570-1x2/.test(subKey))                                    return 'rock_1x2';
+        if (subKey === 'da-7570-2x4' || /^da-mi/.test(subKey))              return 'rock_2x4';
+        if (subKey === 'da-7570-4x6' || /^da-1771-(5x7|soi)$/.test(subKey) || /^da-8859/.test(subKey)) return 'rock_4x6';
+        if (subKey === 'da-1771-hoc' || subKey === 'da-phong-hoa')          return 'rock_riprap';
+        return 'rock_2x4';
+      }
+      // ĐẤT
+      if (matKey === 'soil') {
+        if (/^dat-9436-k(95|98)$/.test(subKey))                             return 'soil_K95';
+        return 'soil_fill';
+      }
+      return null;
+    }
 
     // ---- HÀM HỖ TRỢ ----
     const $ = (id) => document.getElementById(id);
@@ -1930,21 +1958,41 @@
     // ---- ÁP DỤNG GIÁ MẶC ĐỊNH THEO VÙNG (khi chọn mỏ) ----
     function applyRegionDefaults() {
       const r = state.region;
+      const provSlug = state.province;
+      const provData = provSlug ? (window.PROVINCES_DB || {})[provSlug] : null;
       const badge = $('regionBadge');
-      if (!r) {
-        badge.style.display = 'none';
-        return;
-      }
-      badge.style.display = 'inline-block';
-      badge.textContent = '📍 ' + regionLabels[r];
 
-      if (state.material && state.subMaterial)
-        $('minePrice').value = getMinePriceByRegion(state.material, state.subMaterial, r);
-      if (state.mode && state.subTransport)
+      if (!r && !provData) { badge.style.display = 'none'; return; }
+      badge.style.display = 'inline-block';
+      // Ưu tiên hiển thị tên tỉnh, nếu không có thì hiện vùng
+      badge.textContent = provData
+        ? `📍 ${provData.name} · ${regionLabels[provData.region] || ''}`
+        : '📍 ' + regionLabels[r];
+
+      // Đơn giá mỏ: ưu tiên giá tỉnh, fallback hệ số vùng
+      if (state.material && state.subMaterial) {
+        let minePrice = null;
+        if (provData) {
+          const key = subMaterialToProvinceKey(state.material, state.subMaterial);
+          if (key && provData.prices?.[key]) minePrice = provData.prices[key].common;
+        }
+        if (minePrice == null && r) minePrice = getMinePriceByRegion(state.material, state.subMaterial, r);
+        if (minePrice != null) $('minePrice').value = minePrice;
+      }
+
+      // Cước vận chuyển: vẫn dùng hệ số vùng
+      if (state.mode && state.subTransport && r)
         $('transportRate').value = getTransRateByRegion(state.mode, state.subTransport, r);
-      if (state.material)
-        $('envFee').value = regionEnvFee[state.material][r];
-      $('loadingFee').value = regionLoadingFee[r];
+
+      // Phí: ưu tiên giá tỉnh
+      if (provData && provData.fees) {
+        $('envFee').value = provData.fees.envFeePerM3;
+        $('loadingFee').value = provData.fees.loadingFeePerM3;
+        $('resourceTax').value = provData.fees.resourceTaxPct;
+      } else if (r) {
+        if (state.material) $('envFee').value = regionEnvFee[state.material][r];
+        $('loadingFee').value = regionLoadingFee[r];
+      }
     }
 
     function refreshSummary() {
@@ -2225,10 +2273,14 @@
         state.originCoords = c;
         if (c) {
           state.region = detectRegion(c.lat);
+          state.province = (window.detectProvinceByCoords && window.detectProvinceByCoords(c.lat, c.lon))
+                           || (window.detectProvinceByName && window.detectProvinceByName(value))
+                           || null;
           applyRegionDefaults();
           refreshAllRefs();
         } else if (!value.trim()) {
           state.region = null;
+          state.province = null;
           refreshAllRefs();
         }
         state.distanceManual = false;
@@ -2626,6 +2678,9 @@
       state.origin = loc.name;
       state.originCoords = { lat: loc.lat, lon: loc.lon };
       state.region = detectRegion(loc.lat);
+      state.province = (window.detectProvinceByCoords && window.detectProvinceByCoords(loc.lat, loc.lon))
+                       || (window.detectProvinceByName && window.detectProvinceByName(loc.name))
+                       || null;
       applyRegionDefaults();
       refreshAllRefs();
       // Update map button
