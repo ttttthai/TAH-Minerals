@@ -184,7 +184,7 @@
       cursor: not-allowed;
     }
 
-    .summary { position: sticky; top: 10px; }
+    .summary { /* nằm trên breakdown trong cột phải, không sticky để khỏi che breakdown */ }
     .summary-row {
       display: flex;
       justify-content: space-between;
@@ -1106,7 +1106,49 @@
         <div class="note">* Đơn giá mặc định là tham khảo thị trường. Vui lòng cập nhật theo hợp đồng/báo giá thực tế.</div>
       </div>
 
-      <!-- CARD 3: BREAKDOWN RESULT -->
+    </div>
+
+    <!-- RIGHT: SUMMARY -->
+    <div>
+      <div class="card summary">
+        <h2>Tóm tắt lựa chọn</h2>
+        <div class="summary-row empty" id="row-material">
+          <span class="label">Vật liệu</span>
+          <span class="value">Chưa chọn</span>
+        </div>
+        <div class="summary-row empty" id="row-subMaterial">
+          <span class="label">Loại cụ thể</span>
+          <span class="value">Chưa chọn</span>
+        </div>
+        <div class="summary-row empty" id="row-quantity">
+          <span class="label">Khối lượng</span>
+          <span class="value">Chưa nhập</span>
+        </div>
+        <div class="summary-row empty" id="row-mode">
+          <span class="label">Phương thức</span>
+          <span class="value">Chưa chọn</span>
+        </div>
+        <div class="summary-row empty" id="row-subTransport">
+          <span class="label">Phương tiện</span>
+          <span class="value">Chưa chọn</span>
+        </div>
+        <div class="summary-row empty" id="row-distance">
+          <span class="label">Cự ly</span>
+          <span class="value">Chưa nhập</span>
+        </div>
+        <div class="summary-row empty" id="row-route">
+          <span class="label">Tuyến</span>
+          <span class="value">Chưa nhập</span>
+        </div>
+
+        <div class="total-box">
+          <div class="label">Tổng giá trị hợp đồng</div>
+          <div class="amount" id="total">— ₫</div>
+          <div class="unit-amount" id="unit-total"></div>
+        </div>
+      </div>
+
+      <!-- CARD: BREAKDOWN RESULT (moved to right column) -->
       <div class="card breakdown" id="breakdownCard">
         <h2>Bảng phân tích chi phí chi tiết</h2>
 
@@ -1228,47 +1270,6 @@
         <div class="breakdown-row" style="margin-top:8px;">
           <span class="label">Đơn giá bán bình quân</span>
           <span class="value" id="b-unit-price">—</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- RIGHT: SUMMARY -->
-    <div>
-      <div class="card summary">
-        <h2>Tóm tắt lựa chọn</h2>
-        <div class="summary-row empty" id="row-material">
-          <span class="label">Vật liệu</span>
-          <span class="value">Chưa chọn</span>
-        </div>
-        <div class="summary-row empty" id="row-subMaterial">
-          <span class="label">Loại cụ thể</span>
-          <span class="value">Chưa chọn</span>
-        </div>
-        <div class="summary-row empty" id="row-quantity">
-          <span class="label">Khối lượng</span>
-          <span class="value">Chưa nhập</span>
-        </div>
-        <div class="summary-row empty" id="row-mode">
-          <span class="label">Phương thức</span>
-          <span class="value">Chưa chọn</span>
-        </div>
-        <div class="summary-row empty" id="row-subTransport">
-          <span class="label">Phương tiện</span>
-          <span class="value">Chưa chọn</span>
-        </div>
-        <div class="summary-row empty" id="row-distance">
-          <span class="label">Cự ly</span>
-          <span class="value">Chưa nhập</span>
-        </div>
-        <div class="summary-row empty" id="row-route">
-          <span class="label">Tuyến</span>
-          <span class="value">Chưa nhập</span>
-        </div>
-
-        <div class="total-box">
-          <div class="label">Tổng giá trị hợp đồng</div>
-          <div class="amount" id="total">— ₫</div>
-          <div class="unit-amount" id="unit-total"></div>
         </div>
       </div>
     </div>
