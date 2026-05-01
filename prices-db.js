@@ -1,31 +1,50 @@
 // prices-db.js — Province-level material price database for TAH Minerals
-// Will be populated with data from research agent (34 provinces, post-2025 reform)
-// Structure:
-//   window.PROVINCES_DB = {
-//     "ha-noi": {
-//       name: "Hà Nội", isCity: true, region: "north",
-//       prices: {
-//         sand_concrete: { common: 420000, min: 350000, max: 500000, unit: "₫/m³" },
-//         sand_mortar:   { ... }, sand_fill: { ... },
-//         rock_1x2: { ... }, rock_2x4: { ... }, rock_4x6: { ... }, rock_riprap: { ... },
-//         soil_fill: { ... }, soil_K95: { ... }
-//       },
-//       fees: { resourceTaxPct: 10, envFeePerM3: 4000, loadingFeePerM3: 18000 },
-//       notes: "...",
-//       sources: ["https://..."]
-//     },
-//     ...
-//   }
+// 34 provinces (post-2025 administrative reform), 6 cities + 28 provinces
+// Prices in ₫/m³ at mine-gate (chưa VAT)
+// Sources: Sở Xây dựng các tỉnh + vlxd.org/vatlieuxaydung.org.vn + báo Xây dựng (2025)
 
 window.PROVINCES_DB = {
-  // Placeholder — đang chờ data từ research agent
-  // Khi có data, file này sẽ được cập nhật với 34 tỉnh hiện hành
+  "ha-noi":      {name:"Hà Nội",isCity:true, region:"north",    lat:21.028, lon:105.854, prices:{sand_concrete:{common:500000},sand_mortar:{common:345000},sand_fill:{common:140000},rock_1x2:{common:377000},rock_2x4:{common:320000},rock_4x6:{common:250000},rock_riprap:{common:195000},soil_fill:{common:95000}, soil_K95:{common:120000}},fees:{resourceTaxPct:12,envFeePerM3:5000,loadingFeePerM3:20000},notes:"Cát sông Hồng từ Phú Thọ/Hưng Yên; đá xây dựng từ vùng Hoà Bình cũ. Giá nội đô cao hơn ngoại thành 20-25%."},
+  "hai-phong":   {name:"Hải Phòng",isCity:true,region:"north",   lat:20.844, lon:106.688, prices:{sand_concrete:{common:430000},sand_mortar:{common:310000},sand_fill:{common:130000},rock_1x2:{common:335000},rock_2x4:{common:280000},rock_4x6:{common:220000},rock_riprap:{common:180000},soil_fill:{common:90000}, soil_K95:{common:115000}},fees:{resourceTaxPct:12,envFeePerM3:5000,loadingFeePerM3:20000},notes:"TP mở rộng gồm Hải Dương cũ. Đá từ Kinh Môn/Tràng Kênh; cát từ sông Thái Bình/Kinh Thầy."},
+  "hue":         {name:"Huế",isCity:true,    region:"central",  lat:16.463, lon:107.595, prices:{sand_concrete:{common:400000},sand_mortar:{common:300000},sand_fill:{common:140000},rock_1x2:{common:320000},rock_2x4:{common:265000},rock_4x6:{common:200000},rock_riprap:{common:165000},soil_fill:{common:85000}, soil_K95:{common:110000}},fees:{resourceTaxPct:10,envFeePerM3:4000,loadingFeePerM3:18000},notes:"Cát sông Hương/sông Bồ; đá từ Phú Lộc/Hương Trà."},
+  "da-nang":     {name:"Đà Nẵng",isCity:true,region:"central",  lat:16.054, lon:108.202, prices:{sand_concrete:{common:430000},sand_mortar:{common:320000},sand_fill:{common:150000},rock_1x2:{common:330000},rock_2x4:{common:275000},rock_4x6:{common:215000},rock_riprap:{common:175000},soil_fill:{common:88000}, soil_K95:{common:115000}},fees:{resourceTaxPct:12,envFeePerM3:5000,loadingFeePerM3:20000},notes:"TP mở rộng gồm Quảng Nam cũ. Cát Thu Bồn/Vu Gia; đá Hoà Vang/Núi Thành/Phước Sơn."},
+  "ho-chi-minh": {name:"TP Hồ Chí Minh",isCity:true,region:"southeast",lat:10.776,lon:106.700,prices:{sand_concrete:{common:480000},sand_mortar:{common:360000},sand_fill:{common:280000},rock_1x2:{common:380000},rock_2x4:{common:320000},rock_4x6:{common:250000},rock_riprap:{common:200000},soil_fill:{common:120000},soil_K95:{common:150000}},fees:{resourceTaxPct:15,envFeePerM3:6000,loadingFeePerM3:25000},notes:"TP mở rộng gồm Bình Dương + BR-VT cũ. Cát sông ĐN/SG + nhập Campuchia; đá từ Tân Uyên/Phú Mỹ/Núi Dinh. Giá cao do nhu cầu lớn."},
+  "can-tho":     {name:"Cần Thơ",isCity:true,region:"mekong",   lat:10.045, lon:105.747, prices:{sand_concrete:{common:470000},sand_mortar:{common:340000},sand_fill:{common:290000},rock_1x2:{common:440000},rock_2x4:{common:380000},rock_4x6:{common:300000},rock_riprap:{common:260000},soil_fill:{common:130000},soil_K95:{common:160000}},fees:{resourceTaxPct:15,envFeePerM3:6000,loadingFeePerM3:22000},notes:"TP mở rộng gồm Sóc Trăng + Hậu Giang cũ. Đá phải vận chuyển từ ĐNB nên giá cao; cát sông Hậu, một phần từ Campuchia."},
+  "cao-bang":    {name:"Cao Bằng",isCity:false,region:"north",  lat:22.666, lon:106.258, prices:{sand_concrete:{common:400000},sand_mortar:{common:300000},sand_fill:{common:120000},rock_1x2:{common:310000},rock_2x4:{common:260000},rock_4x6:{common:200000},rock_riprap:{common:160000},soil_fill:{common:75000}, soil_K95:{common:105000}},fees:{resourceTaxPct:10,envFeePerM3:4000,loadingFeePerM3:18000},notes:"Tỉnh giữ nguyên. Đá từ vùng núi Hoà An; cát sông Bằng/sông Hiến."},
+  "dien-bien":   {name:"Điện Biên",isCity:false,region:"north", lat:21.385, lon:103.017, prices:{sand_concrete:{common:410000},sand_mortar:{common:310000},sand_fill:{common:130000},rock_1x2:{common:320000},rock_2x4:{common:265000},rock_4x6:{common:205000},rock_riprap:{common:165000},soil_fill:{common:75000}, soil_K95:{common:105000}},fees:{resourceTaxPct:10,envFeePerM3:4000,loadingFeePerM3:18000},notes:"Tỉnh giữ nguyên. Vùng núi cao; cát sông Nậm Rốm/Nậm Mức."},
+  "ha-tinh":     {name:"Hà Tĩnh",isCity:false,region:"central", lat:18.342, lon:105.906, prices:{sand_concrete:{common:390000},sand_mortar:{common:290000},sand_fill:{common:125000},rock_1x2:{common:310000},rock_2x4:{common:255000},rock_4x6:{common:195000},rock_riprap:{common:160000},soil_fill:{common:75000}, soil_K95:{common:100000}},fees:{resourceTaxPct:10,envFeePerM3:4000,loadingFeePerM3:18000},notes:"Tỉnh giữ nguyên. Cát sông La/Ngàn Sâu; đá xây dựng từ Hồng Lĩnh/Kỳ Anh."},
+  "lai-chau":    {name:"Lai Châu",isCity:false,region:"north",  lat:22.396, lon:103.458, prices:{sand_concrete:{common:420000},sand_mortar:{common:315000},sand_fill:{common:130000},rock_1x2:{common:325000},rock_2x4:{common:270000},rock_4x6:{common:210000},rock_riprap:{common:170000},soil_fill:{common:75000}, soil_K95:{common:105000}},fees:{resourceTaxPct:10,envFeePerM3:4000,loadingFeePerM3:18000},notes:"Tỉnh giữ nguyên. Tây Bắc, cát từ sông Đà; chi phí vận chuyển nội tỉnh cao."},
+  "lang-son":    {name:"Lạng Sơn",isCity:false,region:"north",  lat:21.853, lon:106.762, prices:{sand_concrete:{common:410000},sand_mortar:{common:305000},sand_fill:{common:125000},rock_1x2:{common:315000},rock_2x4:{common:265000},rock_4x6:{common:200000},rock_riprap:{common:165000},soil_fill:{common:75000}, soil_K95:{common:105000}},fees:{resourceTaxPct:10,envFeePerM3:4000,loadingFeePerM3:18000},notes:"Tỉnh giữ nguyên. Đá vôi từ Đồng Đăng/Hữu Lũng; cát sông Kỳ Cùng/sông Thương."},
+  "nghe-an":     {name:"Nghệ An",isCity:false,region:"central", lat:18.679, lon:105.681, prices:{sand_concrete:{common:390000},sand_mortar:{common:290000},sand_fill:{common:120000},rock_1x2:{common:310000},rock_2x4:{common:255000},rock_4x6:{common:195000},rock_riprap:{common:160000},soil_fill:{common:75000}, soil_K95:{common:100000}},fees:{resourceTaxPct:10,envFeePerM3:4000,loadingFeePerM3:18000},notes:"Tỉnh giữ nguyên. Cát sông Lam/sông Hiếu; đá Quỳnh Lưu/Đô Lương/Thanh Chương."},
+  "quang-ninh":  {name:"Quảng Ninh",isCity:false,region:"north",lat:20.951, lon:107.080, prices:{sand_concrete:{common:440000},sand_mortar:{common:315000},sand_fill:{common:135000},rock_1x2:{common:340000},rock_2x4:{common:285000},rock_4x6:{common:220000},rock_riprap:{common:180000},soil_fill:{common:85000}, soil_K95:{common:115000}},fees:{resourceTaxPct:12,envFeePerM3:5000,loadingFeePerM3:20000},notes:"Tỉnh giữ nguyên. Đá vôi từ Cẩm Phả/Hoành Bồ; cát biển + sông Bạch Đằng. Nhu cầu cao do du lịch và công nghiệp."},
+  "thanh-hoa":   {name:"Thanh Hóa",isCity:false,region:"north", lat:19.807, lon:105.776, prices:{sand_concrete:{common:390000},sand_mortar:{common:290000},sand_fill:{common:120000},rock_1x2:{common:305000},rock_2x4:{common:255000},rock_4x6:{common:195000},rock_riprap:{common:160000},soil_fill:{common:75000}, soil_K95:{common:100000}},fees:{resourceTaxPct:10,envFeePerM3:4000,loadingFeePerM3:18000},notes:"Tỉnh giữ nguyên. Cát sông Mã/sông Chu; đá vôi Bỉm Sơn/Hà Trung/Nga Sơn."},
+  "son-la":      {name:"Sơn La",isCity:false,region:"north",   lat:21.328, lon:103.913, prices:{sand_concrete:{common:410000},sand_mortar:{common:310000},sand_fill:{common:130000},rock_1x2:{common:320000},rock_2x4:{common:265000},rock_4x6:{common:205000},rock_riprap:{common:165000},soil_fill:{common:75000}, soil_K95:{common:105000}},fees:{resourceTaxPct:10,envFeePerM3:4000,loadingFeePerM3:18000},notes:"Tỉnh giữ nguyên. Tây Bắc, cát sông Đà/sông Mã; đá vôi Mộc Châu/Mai Sơn."},
+  "tuyen-quang": {name:"Tuyên Quang",isCity:false,region:"north",lat:21.823,lon:105.218, prices:{sand_concrete:{common:410000},sand_mortar:{common:305000},sand_fill:{common:125000},rock_1x2:{common:320000},rock_2x4:{common:265000},rock_4x6:{common:205000},rock_riprap:{common:165000},soil_fill:{common:75000}, soil_K95:{common:105000}},fees:{resourceTaxPct:10,envFeePerM3:4000,loadingFeePerM3:18000},notes:"Tỉnh mới gồm Tuyên Quang + Hà Giang cũ. Cát sông Lô/sông Gâm; đá vôi Hàm Yên/Yên Sơn."},
+  "lao-cai":     {name:"Lào Cai",isCity:false,region:"north",  lat:22.485, lon:103.975, prices:{sand_concrete:{common:415000},sand_mortar:{common:310000},sand_fill:{common:130000},rock_1x2:{common:320000},rock_2x4:{common:265000},rock_4x6:{common:205000},rock_riprap:{common:170000},soil_fill:{common:75000}, soil_K95:{common:105000}},fees:{resourceTaxPct:10,envFeePerM3:4000,loadingFeePerM3:18000},notes:"Tỉnh mới gồm Lào Cai + Yên Bái cũ. Cát sông Hồng/sông Chảy; đá Bảo Thắng/Văn Yên."},
+  "thai-nguyen": {name:"Thái Nguyên",isCity:false,region:"north",lat:21.594,lon:105.848, prices:{sand_concrete:{common:420000},sand_mortar:{common:310000},sand_fill:{common:125000},rock_1x2:{common:325000},rock_2x4:{common:270000},rock_4x6:{common:210000},rock_riprap:{common:170000},soil_fill:{common:80000}, soil_K95:{common:110000}},fees:{resourceTaxPct:10,envFeePerM3:4000,loadingFeePerM3:18000},notes:"Tỉnh mới gồm Thái Nguyên + Bắc Kạn cũ. Cát sông Cầu/sông Công; đá vôi Đồng Hỷ/Phú Lương."},
+  "phu-tho":     {name:"Phú Thọ",isCity:false,region:"north",  lat:21.323, lon:105.402, prices:{sand_concrete:{common:410000},sand_mortar:{common:305000},sand_fill:{common:125000},rock_1x2:{common:325000},rock_2x4:{common:270000},rock_4x6:{common:210000},rock_riprap:{common:170000},soil_fill:{common:80000}, soil_K95:{common:110000}},fees:{resourceTaxPct:10,envFeePerM3:4000,loadingFeePerM3:18000},notes:"Tỉnh mới gồm Phú Thọ + Vĩnh Phúc + Hoà Bình cũ. Trung tâm cấp cát sông Hồng/sông Lô cho HN; đá Lương Sơn/Kim Bôi."},
+  "bac-ninh":    {name:"Bắc Ninh",isCity:false,region:"north", lat:21.186, lon:106.076, prices:{sand_concrete:{common:425000},sand_mortar:{common:315000},sand_fill:{common:200000},rock_1x2:{common:335000},rock_2x4:{common:280000},rock_4x6:{common:220000},rock_riprap:{common:180000},soil_fill:{common:90000}, soil_K95:{common:120000}},fees:{resourceTaxPct:12,envFeePerM3:5000,loadingFeePerM3:20000},notes:"Tỉnh mới gồm Bắc Ninh + Bắc Giang cũ. KCN dày đặc, nhu cầu cao; cát sông Cầu/sông Đuống; đá Lục Nam/Yên Thế."},
+  "hung-yen":    {name:"Hưng Yên",isCity:false,region:"north", lat:20.654, lon:106.052, prices:{sand_concrete:{common:420000},sand_mortar:{common:310000},sand_fill:{common:195000},rock_1x2:{common:335000},rock_2x4:{common:280000},rock_4x6:{common:220000},rock_riprap:{common:180000},soil_fill:{common:90000}, soil_K95:{common:120000}},fees:{resourceTaxPct:12,envFeePerM3:5000,loadingFeePerM3:20000},notes:"Tỉnh mới gồm Hưng Yên + Thái Bình cũ. Cát sông Hồng/sông Luộc; đá phải vận chuyển từ Hoà Bình/Hà Nam."},
+  "ninh-binh":   {name:"Ninh Bình",isCity:false,region:"north",lat:20.250, lon:105.974, prices:{sand_concrete:{common:410000},sand_mortar:{common:305000},sand_fill:{common:125000},rock_1x2:{common:315000},rock_2x4:{common:265000},rock_4x6:{common:205000},rock_riprap:{common:165000},soil_fill:{common:75000}, soil_K95:{common:105000}},fees:{resourceTaxPct:10,envFeePerM3:4000,loadingFeePerM3:18000},notes:"Tỉnh mới gồm Ninh Bình + Hà Nam + Nam Định cũ. Đá vôi Tam Điệp/Yên Mô/Kim Bảng; cát sông Đáy/sông Hồng."},
+  "quang-tri":   {name:"Quảng Trị",isCity:false,region:"central",lat:16.749,lon:107.197, prices:{sand_concrete:{common:390000},sand_mortar:{common:290000},sand_fill:{common:125000},rock_1x2:{common:305000},rock_2x4:{common:255000},rock_4x6:{common:195000},rock_riprap:{common:160000},soil_fill:{common:75000}, soil_K95:{common:100000}},fees:{resourceTaxPct:10,envFeePerM3:4000,loadingFeePerM3:18000},notes:"Tỉnh mới gồm Quảng Trị + Quảng Bình cũ. Cát sông Bến Hải/Thạch Hãn/sông Gianh; đá Cam Lộ/Lệ Thuỷ."},
+  "quang-ngai":  {name:"Quảng Ngãi",isCity:false,region:"central",lat:15.121,lon:108.804,prices:{sand_concrete:{common:405000},sand_mortar:{common:300000},sand_fill:{common:135000},rock_1x2:{common:315000},rock_2x4:{common:265000},rock_4x6:{common:205000},rock_riprap:{common:165000},soil_fill:{common:80000}, soil_K95:{common:110000}},fees:{resourceTaxPct:10,envFeePerM3:4000,loadingFeePerM3:18000},notes:"Tỉnh mới gồm Quảng Ngãi + Kon Tum cũ. Cát sông Trà Khúc/sông Vệ; đá Bình Sơn/Sơn Tịnh + đá granit Kon Tum."},
+  "gia-lai":     {name:"Gia Lai",isCity:false,region:"central",lat:13.984, lon:108.000, prices:{sand_concrete:{common:415000},sand_mortar:{common:310000},sand_fill:{common:130000},rock_1x2:{common:320000},rock_2x4:{common:265000},rock_4x6:{common:205000},rock_riprap:{common:170000},soil_fill:{common:85000}, soil_K95:{common:110000}},fees:{resourceTaxPct:10,envFeePerM3:4000,loadingFeePerM3:18000},notes:"Tỉnh mới gồm Gia Lai + Bình Định cũ. Cát sông Ba/sông Côn; đá granit/bazan Pleiku/An Khê/Phù Cát."},
+  "khanh-hoa":   {name:"Khánh Hòa",isCity:false,region:"central",lat:12.250,lon:109.187, prices:{sand_concrete:{common:420000},sand_mortar:{common:310000},sand_fill:{common:140000},rock_1x2:{common:325000},rock_2x4:{common:270000},rock_4x6:{common:210000},rock_riprap:{common:170000},soil_fill:{common:88000}, soil_K95:{common:115000}},fees:{resourceTaxPct:10,envFeePerM3:4000,loadingFeePerM3:20000},notes:"Tỉnh mới gồm Khánh Hoà + Ninh Thuận cũ. Cát sông Cái Nha Trang/sông Dinh; đá granit Cam Lâm/Ninh Hoà."},
+  "lam-dong":    {name:"Lâm Đồng",isCity:false,region:"central",lat:11.943,lon:108.443, prices:{sand_concrete:{common:430000},sand_mortar:{common:315000},sand_fill:{common:140000},rock_1x2:{common:335000},rock_2x4:{common:280000},rock_4x6:{common:215000},rock_riprap:{common:175000},soil_fill:{common:95000}, soil_K95:{common:120000}},fees:{resourceTaxPct:12,envFeePerM3:5000,loadingFeePerM3:20000},notes:"Tỉnh mới gồm Lâm Đồng + Đắk Nông + Bình Thuận cũ. Cát La Ngà/Cái Phan Thiết/Đa Nhim; đá bazan Tây Nguyên + cát biển BT cũ."},
+  "dak-lak":     {name:"Đắk Lắk",isCity:false,region:"central",lat:12.710, lon:108.238, prices:{sand_concrete:{common:415000},sand_mortar:{common:310000},sand_fill:{common:140000},rock_1x2:{common:325000},rock_2x4:{common:270000},rock_4x6:{common:210000},rock_riprap:{common:170000},soil_fill:{common:90000}, soil_K95:{common:115000}},fees:{resourceTaxPct:10,envFeePerM3:4000,loadingFeePerM3:18000},notes:"Tỉnh mới gồm Đắk Lắk + Phú Yên cũ. Cát Sêrêpôk/sông Ba; đá bazan/granit Cư Kuin/Krông Pắc + cát biển PY cũ."},
+  "dong-nai":    {name:"Đồng Nai",isCity:false,region:"southeast",lat:10.960,lon:107.241,prices:{sand_concrete:{common:460000},sand_mortar:{common:350000},sand_fill:{common:250000},rock_1x2:{common:360000},rock_2x4:{common:305000},rock_4x6:{common:240000},rock_riprap:{common:195000},soil_fill:{common:110000},soil_K95:{common:140000}},fees:{resourceTaxPct:15,envFeePerM3:6000,loadingFeePerM3:22000},notes:"Tỉnh mới gồm Đồng Nai + Bình Phước cũ. Trung tâm cấp đá xây dựng cho ĐNB và ĐBSCL (Tân Cang/Thiện Tân/Hoá An/Phước Tân); cát sông ĐN/La Ngà."},
+  "tay-ninh":    {name:"Tây Ninh",isCity:false,region:"southeast",lat:11.310,lon:106.099,prices:{sand_concrete:{common:455000},sand_mortar:{common:345000},sand_fill:{common:240000},rock_1x2:{common:380000},rock_2x4:{common:320000},rock_4x6:{common:250000},rock_riprap:{common:200000},soil_fill:{common:110000},soil_K95:{common:140000}},fees:{resourceTaxPct:15,envFeePerM3:6000,loadingFeePerM3:22000},notes:"Tỉnh mới gồm Tây Ninh + Long An cũ. Cát Vàm Cỏ Đông + nhập Campuchia; đá phải vận chuyển từ ĐN."},
+  "vinh-long":   {name:"Vĩnh Long",isCity:false,region:"mekong",lat:10.253, lon:105.972, prices:{sand_concrete:{common:470000},sand_mortar:{common:340000},sand_fill:{common:290000},rock_1x2:{common:440000},rock_2x4:{common:380000},rock_4x6:{common:300000},rock_riprap:{common:260000},soil_fill:{common:130000},soil_K95:{common:160000}},fees:{resourceTaxPct:15,envFeePerM3:5000,loadingFeePerM3:22000},notes:"Tỉnh mới gồm Vĩnh Long + Bến Tre + Trà Vinh cũ. Cát sông Tiền/Hậu/Cổ Chiên; toàn bộ đá nhập từ ĐNB qua đường thuỷ."},
+  "dong-thap":   {name:"Đồng Tháp",isCity:false,region:"mekong",lat:10.493, lon:105.687, prices:{sand_concrete:{common:460000},sand_mortar:{common:330000},sand_fill:{common:270000},rock_1x2:{common:440000},rock_2x4:{common:375000},rock_4x6:{common:300000},rock_riprap:{common:260000},soil_fill:{common:130000},soil_K95:{common:160000}},fees:{resourceTaxPct:15,envFeePerM3:5000,loadingFeePerM3:20000},notes:"Tỉnh mới gồm Đồng Tháp + Tiền Giang cũ. Trung tâm khai thác cát sông lớn (sông Tiền/Hậu); đá nhập từ ĐNB."},
+  "ca-mau":      {name:"Cà Mau",isCity:false,region:"mekong",  lat:9.176,  lon:105.150, prices:{sand_concrete:{common:490000},sand_mortar:{common:360000},sand_fill:{common:310000},rock_1x2:{common:460000},rock_2x4:{common:395000},rock_4x6:{common:320000},rock_riprap:{common:270000},soil_fill:{common:140000},soil_K95:{common:170000}},fees:{resourceTaxPct:15,envFeePerM3:5000,loadingFeePerM3:22000},notes:"Tỉnh mới gồm Cà Mau + Bạc Liêu cũ. Cực Nam, không có mỏ cát/đá; toàn bộ vật liệu vận chuyển bằng đường thuỷ – giá cao nhất khu vực Mekong."},
+  "an-giang":    {name:"An Giang",isCity:false,region:"mekong",lat:10.522, lon:105.126, prices:{sand_concrete:{common:440000},sand_mortar:{common:320000},sand_fill:{common:260000},rock_1x2:{common:420000},rock_2x4:{common:360000},rock_4x6:{common:285000},rock_riprap:{common:245000},soil_fill:{common:125000},soil_K95:{common:155000}},fees:{resourceTaxPct:15,envFeePerM3:5000,loadingFeePerM3:20000},notes:"Tỉnh mới gồm An Giang + Kiên Giang cũ. Trung tâm cát sông lớn nhất ĐBSCL (Tiền/Hậu); có mỏ đá Hà Tiên/Hòn Chông giúp giảm giá đá."}
 };
 
-// Helper: detect province from latitude/longitude (rough province centroid match)
-window.detectProvince = function(lat, lon) {
-  let best = null;
-  let bestDist = Infinity;
+// ===== HELPERS =====
+const VN_REGIONS = { north:"Miền Bắc", central:"Miền Trung", southeast:"Đông Nam Bộ", mekong:"ĐB Sông Cửu Long" };
+
+window.detectProvinceByCoords = function(lat, lon) {
+  let best = null, bestDist = Infinity;
   for (const [slug, p] of Object.entries(window.PROVINCES_DB)) {
     if (typeof p.lat !== 'number' || typeof p.lon !== 'number') continue;
     const dx = (lat - p.lat) * 111;
@@ -36,11 +55,28 @@ window.detectProvince = function(lat, lon) {
   return best;
 };
 
-// Helper: get common price for a (province, key) pair, fallback to region average if province missing
-window.getProvincePrice = function(provinceSlug, materialKey) {
-  const p = window.PROVINCES_DB[provinceSlug];
-  if (p && p.prices && p.prices[materialKey]) {
-    return p.prices[materialKey].common;
+window.detectProvinceByName = function(text) {
+  if (!text) return null;
+  const t = text.toLowerCase();
+  for (const [slug, p] of Object.entries(window.PROVINCES_DB)) {
+    const name = (p.name || '').toLowerCase();
+    if (name && t.includes(name)) return slug;
+    // also try slug parts
+    const slugParts = slug.replace(/-/g, ' ');
+    if (t.includes(slugParts)) return slug;
   }
   return null;
 };
+
+window.getProvincePrice = function(provinceSlug, materialKey) {
+  const p = window.PROVINCES_DB[provinceSlug];
+  if (p && p.prices && p.prices[materialKey]) return p.prices[materialKey].common;
+  return null;
+};
+
+window.getProvinceFees = function(provinceSlug) {
+  const p = window.PROVINCES_DB[provinceSlug];
+  return p ? p.fees : null;
+};
+
+console.log('[prices-db] Loaded', Object.keys(window.PROVINCES_DB).length, 'provinces');
