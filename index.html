@@ -2145,55 +2145,6 @@
     }
 
     // ---- BIND EVENTS ----
-    // ---- USE CASE: populate dropdown + bind change ----
-    (function populateUseCaseSelect() {
-      const sel = $('useCase');
-      let html = '<option value="">— Tất cả (không lọc) —</option>';
-      const groups = new Map();
-      for (const uc of useCases) {
-        if (!groups.has(uc.group)) groups.set(uc.group, []);
-        groups.get(uc.group).push(uc);
-      }
-      for (const [g, list] of groups) {
-        html += `<optgroup label="${g}">`;
-        html += list.map(u => `<option value="${u.id}">${u.label}</option>`).join('');
-        html += '</optgroup>';
-      }
-      sel.innerHTML = html;
-    })();
-
-    $('useCase').addEventListener('change', (e) => {
-      state.useCase = e.target.value;
-      const hint = $('useCaseHint');
-      if (state.useCase && useCaseHints[state.useCase]) {
-        hint.textContent = '💡 ' + useCaseHints[state.useCase];
-        hint.style.display = 'block';
-      } else {
-        hint.style.display = 'none';
-      }
-      refreshMaterialOptions();
-      // Lọc lại subMaterial nếu material đã chọn
-      if (state.material) {
-        const items = getCompatSubMaterials(state.material);
-        if (items.length === 0) {
-          state.subMaterial = '';
-          $('subMaterial').innerHTML = '<option value="">— Không có loại tương thích —</option>';
-          $('subMaterial').disabled = true;
-        } else {
-          fillSelect($('subMaterial'), items, '— Chọn loại cụ thể —');
-          // Reset nếu lựa chọn cũ không còn tương thích
-          if (state.subMaterial && !items.find(i => i.value === state.subMaterial)) {
-            state.subMaterial = '';
-          } else {
-            $('subMaterial').value = state.subMaterial;
-          }
-        }
-        updateSpecCard();
-      }
-      refreshAllRefs();
-      refreshSummary();
-    });
-
     $('material').addEventListener('change', (e) => {
       state.material = e.target.value;
       const sub = $('subMaterial');
