@@ -1561,26 +1561,42 @@
     };
 
     // Cước vận chuyển mặc định (₫/m³/km) — tham khảo thị trường VN
+    // Phương tiện vận chuyển — research từ thị trường VN (xe ben Howo/Hyundai/Hino,
+    // sà lan tự hành/kéo, tàu pha sông biển VR-SB, tàu hàng rời Handysize/Handymax/Supramax)
     const subTransports = {
       land: [
-        { value: 'truck-5t',   label: 'Xe tải 5 tấn',  defaultRate: 4500, defaultFixed: 200000 },
-        { value: 'truck-10t',  label: 'Xe tải 10 tấn', defaultRate: 3200, defaultFixed: 300000 },
-        { value: 'truck-15t',  label: 'Xe tải 15 tấn', defaultRate: 2800, defaultFixed: 400000 },
-        { value: 'truck-20t',  label: 'Xe tải 20 tấn', defaultRate: 2400, defaultFixed: 500000 },
-        { value: 'truck-25t',  label: 'Xe tải 25 tấn', defaultRate: 2100, defaultFixed: 600000 }
+        { value: 'xe-tai-1t5',          label: 'Xe tải nhẹ 1,5 tấn (~1,2 m³) — vào nội thành',                       defaultRate: 6000, defaultFixed: 100000 },
+        { value: 'xe-tai-2t5',          label: 'Xe tải thùng 2,5 tấn (~2 m³)',                                        defaultRate: 5500, defaultFixed: 150000 },
+        { value: 'xe-ben-5t',           label: 'Xe ben tự đổ 5 tấn (~3 m³) — Hyundai HD88 / Isuzu QKR',               defaultRate: 5000, defaultFixed: 200000 },
+        { value: 'xe-ben-8t',           label: 'Xe ben tự đổ 8 tấn (~7 m³) — Hyundai HD99 / Hino FC',                 defaultRate: 4000, defaultFixed: 280000 },
+        { value: 'xe-ben-10t',          label: 'Xe ben tự đổ 10 tấn (~10 m³) — Hyundai HD120 / Auman C160',           defaultRate: 3500, defaultFixed: 350000 },
+        { value: 'xe-ben-3chan-15t',    label: 'Xe ben 3 chân 15 tấn (~10 m³) — Hyundai HD270 / Auman D240',          defaultRate: 3000, defaultFixed: 450000 },
+        { value: 'xe-ben-4chan-17t',    label: 'Xe ben 4 chân 17 tấn (~15 m³) — Howo / Shacman M3000',                defaultRate: 2700, defaultFixed: 550000 },
+        { value: 'xe-ben-4chan-22t',    label: 'Xe ben 4 chân thùng đúc 22 tấn (~22 m³) — Howo (nội bộ mỏ)',          defaultRate: 2500, defaultFixed: 700000 },
+        { value: 'xe-ben-5chan-20t',    label: 'Xe ben 5 chân 20 tấn (~22 m³) — Howo 10×4 (nội bộ mỏ)',               defaultRate: 2400, defaultFixed: 750000 },
+        { value: 'dau-keo-romooc-30t',  label: 'Đầu kéo + sơ-mi rơ-moóc ben 30 tấn (~25 m³) — Howo / Hino 700',       defaultRate: 2000, defaultFixed: 900000 },
+        { value: 'dau-keo-romooc-40t',  label: 'Đầu kéo + sơ-mi rơ-moóc ben 40 tấn (~32 m³) — đoàn 6 trục',           defaultRate: 1800, defaultFixed: 1200000 }
       ],
       river: [
-        { value: 'barge-200t',   label: 'Sà lan 200 tấn',   defaultRate: 900, defaultFixed: 1500000 },
-        { value: 'barge-500t',   label: 'Sà lan 500 tấn',   defaultRate: 650, defaultFixed: 2500000 },
-        { value: 'barge-800t',   label: 'Sà lan 800 tấn',   defaultRate: 550, defaultFixed: 3500000 },
-        { value: 'barge-1500t',  label: 'Sà lan 1.500 tấn', defaultRate: 450, defaultFixed: 5000000 }
+        { value: 'sa-lan-100t',         label: 'Sà lan tự hành 100–150 tấn — kênh rạch ĐBSCL',                        defaultRate: 1200, defaultFixed: 800000 },
+        { value: 'sa-lan-300t',         label: 'Sà lan tự hành 300 tấn — sông nội địa',                               defaultRate: 850,  defaultFixed: 1500000 },
+        { value: 'sa-lan-500t',         label: 'Sà lan tự hành 500 tấn — phổ biến nhất cho VLXD',                     defaultRate: 650,  defaultFixed: 2500000 },
+        { value: 'sa-lan-800t',         label: 'Sà lan tự hành 800 tấn — sông Tiền/Hậu/Hồng',                         defaultRate: 550,  defaultFixed: 3500000 },
+        { value: 'sa-lan-1000t',        label: 'Sà lan tự hành 1.000 tấn',                                            defaultRate: 500,  defaultFixed: 4000000 },
+        { value: 'sa-lan-1500t',        label: 'Sà lan tự hành 1.500 tấn — dự án hạ tầng lớn',                        defaultRate: 450,  defaultFixed: 5000000 },
+        { value: 'sa-lan-2000t',        label: 'Sà lan tự hành 2.000–2.500 tấn — sông lớn, cửa sông',                 defaultRate: 400,  defaultFixed: 6500000 },
+        { value: 'sa-lan-keo-1500t',    label: 'Sà lan kéo (không tự hành) 1.500 tấn — chi phí thấp/tấn',             defaultRate: 380,  defaultFixed: 7000000 },
+        { value: 'sa-lan-keo-3000t',    label: 'Sà lan kéo 3.000 tấn — sông lớn & ven biển',                          defaultRate: 320,  defaultFixed: 12000000 },
+        { value: 'sa-lan-ha-mieng-800t',label: 'Sà lan há miệng (tự đổ) 500–1.000 tấn — nạo vét, san lấp',            defaultRate: 700,  defaultFixed: 4500000 }
       ],
       ocean: [
-        { value: 'ship-3000dwt',  label: 'Tàu biển 3.000 DWT',  defaultRate: 400, defaultFixed: 15000000 },
-        { value: 'ship-5000dwt',  label: 'Tàu biển 5.000 DWT',  defaultRate: 320, defaultFixed: 25000000 },
-        { value: 'ship-8000dwt',  label: 'Tàu biển 8.000 DWT',  defaultRate: 260, defaultFixed: 35000000 },
-        { value: 'ship-12000dwt', label: 'Tàu biển 12.000 DWT', defaultRate: 220, defaultFixed: 50000000 },
-        { value: 'ship-20000dwt', label: 'Tàu biển 20.000 DWT', defaultRate: 180, defaultFixed: 75000000 }
+        { value: 'tau-vrsb-1000dwt',    label: 'Tàu pha sông biển VR-SB 1.000 DWT — ven bờ ≤ 12 hải lý',              defaultRate: 450, defaultFixed: 12000000 },
+        { value: 'tau-vrsb-2500dwt',    label: 'Tàu pha sông biển VR-SB 2.000–3.000 DWT — Bắc/Trung/Nam',             defaultRate: 350, defaultFixed: 22000000 },
+        { value: 'tau-mini-bulker-5000',label: 'Tàu hàng rời 3.000–5.000 DWT — HP/ĐN/SG cảng nhỏ',                    defaultRate: 320, defaultFixed: 35000000 },
+        { value: 'tau-handysize-25000', label: 'Tàu hàng rời Handysize 15.000–35.000 DWT — Bắc-Nam, ASEAN',           defaultRate: 220, defaultFixed: 80000000 },
+        { value: 'tau-handymax-45000',  label: 'Tàu hàng rời Handymax 35.000–50.000 DWT — xuất khẩu khu vực',         defaultRate: 180, defaultFixed: 130000000 },
+        { value: 'tau-supramax-55000',  label: 'Tàu hàng rời Supramax 50.000–60.000 DWT — viễn dương',                defaultRate: 160, defaultFixed: 160000000 },
+        { value: 'tau-panamax-65000',   label: 'Tàu hàng rời 65.000 DWT — lớn nhất VN đóng được',                     defaultRate: 140, defaultFixed: 200000000 }
       ]
     };
 
