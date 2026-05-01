@@ -1044,7 +1044,35 @@
           </div>
         </div>
 
-        <div id="errorAlert" class="alert error"></div>
+        <div class="section collapsible">
+          <div class="section-title">E. Chi phí tài chính (vay vốn)</div>
+          <div class="row-3">
+            <div class="field">
+              <label for="loanPct">Tỷ lệ vay</label>
+              <div class="input-prefix">
+                <input type="number" id="loanPct" min="0" max="100" step="1" value="80" />
+                <span class="suffix">%</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="loanRate">Lãi suất (năm)</label>
+              <div class="input-prefix">
+                <input type="number" id="loanRate" min="0" step="0.1" value="8.3" />
+                <span class="suffix">%/năm</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="loanMonths">Thời gian vay</label>
+              <div class="input-prefix">
+                <input type="number" id="loanMonths" min="0" step="0.5" value="3" />
+                <span class="suffix">tháng</span>
+              </div>
+            </div>
+          </div>
+          <div class="hint">💰 Vay <span id="loanPreview">80% × 8.3%/năm × 3 tháng = 1,66%</span> trên tổng giá trị hợp đồng</div>
+        </div>
+
+        <div id="errorAlert" class="alert error"></div></div>
 
         <button class="calc-btn" id="calcBtn">Tính chi phí ước tính</button>
         <div class="note">* Đơn giá mặc định là tham khảo thị trường. Vui lòng cập nhật theo hợp đồng/báo giá thực tế.</div>
@@ -1133,6 +1161,12 @@
           </span>
           <span class="value" id="b-vat">—</span>
         </div>
+        <div class="breakdown-row">
+          <span class="label">Chi phí tài chính
+            <span class="formula" id="f-finance"></span>
+          </span>
+          <span class="value" id="b-finance">—</span>
+        </div>
 
         <div class="breakdown-section-title">E. Phân bổ giá trị hợp đồng</div>
         <div class="breakdown-row">
@@ -1152,6 +1186,12 @@
             <span class="formula" id="f-contract-tax"></span>
           </span>
           <span class="value" id="b-contract-tax">—</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="label">Giá trị HĐ — Tài chính
+            <span class="formula" id="f-contract-fin"></span>
+          </span>
+          <span class="value" id="b-contract-fin">—</span>
         </div>
         <div class="breakdown-row grand-total">
           <span class="label">TỔNG GIÁ TRỊ HỢP ĐỒNG</span>
@@ -2666,6 +2706,9 @@
       const commPct   = parseFloat($('commission').value)     || 0;
       const lossPct   = parseFloat($('loss').value)           || 0;
       const marginPct = parseFloat($('margin').value)         || 0;
+      const loanPct    = parseFloat($('loanPct').value)        || 0;
+      const loanRate   = parseFloat($('loanRate').value)       || 0;
+      const loanMonths = parseFloat($('loanMonths').value)     || 0;
 
       // Validate
       const errs = [];
@@ -2724,7 +2767,18 @@
       // ---- D. Tổng ----
       const preVat     = baseCost + lossCost + commissionCost + marginCost;
       const vatCost    = preVat * vatPct / 100;
-      const grandTotal = preVat + vatCost;
+      const preliminaryGrandTotal = preVat + vatCost;
+
+      // ---- Chi phí tài chính: vay loanPct% × lãi loanRate%/năm × loanMonths tháng ----
+      // Loan = grandTotal × loanPct%, financeCost = Loan × rate × t
+      // Closed-form vì grandTotal phụ thuộc vào financeCost: G = P + G·k → G = P/(1-k)
+      const loanFactor = (loanPct / 100) * (loanRate / 100) * (loanMonths / 12);
+      let financeCost = 0, grandTotal = preliminaryGrandTotal;
+      if (loanFactor > 0 && loanFactor < 1) {
+        grandTotal  = preliminaryGrandTotal / (1 - loanFactor);
+        financeCost = grandTotal - preliminaryGrandTotal;
+      }
+      const loanAmount = grandTotal * loanPct / 100;
       const unitPrice  = grandTotal / qty;
 
       // ---- HIỂN THỊ ----
@@ -2774,18 +2828,22 @@
       $('b-pre-vat').textContent        = fmt(preVat);
       $('f-vat').textContent            = `${vatPct}% × giá trước VAT`;
       $('b-vat').textContent            = fmt(vatCost);
+      $('f-finance').textContent        = loanFactor > 0
+        ? `Vay ${loanPct}% × ${loanRate}%/năm × ${loanMonths} tháng = ${(loanFactor*100).toFixed(2)}% (số tiền vay ${fmt(loanAmount)})`
+        : 'Không vay';
+      $('b-finance').textContent        = fmt(financeCost);
 
       // ---- E. PHÂN BỔ GIÁ TRỊ HỢP ĐỒNG ----
-      // Mỗi cấu phần (vật liệu, vận chuyển, thuế-phí) được nhân với cùng hệ số bao gồm
-      // hao hụt + hoa hồng + lợi nhuận + VAT. Tổng 3 phần = grandTotal.
-      const taxFeeBase  = taxCost + envCost + loadingCost;        // thuế TN + phí MT + phí bốc xếp
-      const matBase     = mineCost;                                // riêng đơn giá tại mỏ
-      const tranBase    = transportTotal;                          // tổng vận chuyển
-      // Hệ số chung: 1 + (hao hụt + hh + ln)% rồi × (1 + VAT%)
+      // 4 cấu phần (vật liệu, vận chuyển, thuế-phí, tài chính) cộng lại = grandTotal.
+      const taxFeeBase  = taxCost + envCost + loadingCost;
+      const matBase     = mineCost;
+      const tranBase    = transportTotal;
+      // Hệ số chung cho 3 nhóm cốt lõi: 1 + (hao hụt + hh + ln)% rồi × (1 + VAT%)
       const overheadMul = (1 + (lossPct + commPct + marginPct) / 100) * (1 + vatPct / 100);
       const contractMat  = matBase    * overheadMul;
       const contractTran = tranBase   * overheadMul;
       const contractTax  = taxFeeBase * overheadMul;
+      const contractFin  = financeCost; // chi phí tài chính đứng riêng
 
       $('f-contract-mat').textContent  = `Đơn giá tại mỏ × hệ số (1 + ${(lossPct+commPct+marginPct).toFixed(1)}%) × (1 + ${vatPct}% VAT)`;
       $('b-contract-mat').textContent  = fmt(contractMat);
@@ -2793,6 +2851,8 @@
       $('b-contract-tran').textContent = fmt(contractTran);
       $('f-contract-tax').textContent  = `Thuế tài nguyên + phí môi trường + bốc xếp × hệ số`;
       $('b-contract-tax').textContent  = fmt(contractTax);
+      $('f-contract-fin').textContent  = `Lãi vay tính trên giá trị HĐ (closed-form)`;
+      $('b-contract-fin').textContent  = fmt(contractFin);
 
       $('b-grand-total').textContent    = fmt(grandTotal);
       $('b-unit-price').textContent     = fmt(unitPrice) + `/${u}`;
@@ -2803,6 +2863,17 @@
       $('breakdownCard').classList.add('show');
       $('breakdownCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+
+    // ---- Preview chi phí tài chính khi user thay đổi tham số vay ----
+    function updateLoanPreview() {
+      const lp = parseFloat($('loanPct').value)    || 0;
+      const lr = parseFloat($('loanRate').value)   || 0;
+      const lm = parseFloat($('loanMonths').value) || 0;
+      const f = (lp/100) * (lr/100) * (lm/12) * 100;
+      $('loanPreview').textContent = `${lp}% × ${lr}%/năm × ${lm} tháng = ${f.toFixed(2)}%`;
+    }
+    ['loanPct','loanRate','loanMonths'].forEach(id => $(id).addEventListener('input', updateLoanPreview));
+    updateLoanPreview();
 
     $('calcBtn').addEventListener('click', calculate);
 
