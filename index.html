@@ -1597,7 +1597,6 @@
       { id: 'bt-m200',      group: 'Bê tông',     label: 'Bê tông M200 (lót, móng phụ)' },
       { id: 'bt-dul',       group: 'Bê tông',     label: 'Bê tông dự ứng lực (DUL)' },
       { id: 'bt-khoi-lon',  group: 'Bê tông',     label: 'Bê tông khối lớn (đập, móng lớn)' },
-      { id: 'bt-nhua',      group: 'Bê tông',     label: 'Bê tông nhựa / asphalt' },
       // === Vữa ===
       { id: 'vua-m100',     group: 'Vữa',         label: 'Vữa xây M100 (kết cấu chịu lực)' },
       { id: 'vua-m75',      group: 'Vữa',         label: 'Vữa xây M75' },
@@ -1605,12 +1604,6 @@
       { id: 'vua-m25',      group: 'Vữa',         label: 'Vữa xây M25 (tường nhẹ)' },
       { id: 'vua-to',       group: 'Vữa',         label: 'Vữa tô tường' },
       { id: 'vua-hoan',     group: 'Vữa',         label: 'Vữa hoàn thiện / trát mỏng' },
-      // === Đường bộ ===
-      { id: 'duong-base',   group: 'Đường bộ',    label: 'Lớp móng trên — base course' },
-      { id: 'duong-subbase',group: 'Đường bộ',    label: 'Lớp móng dưới — sub-base' },
-      { id: 'nen-k98',      group: 'Đường bộ',    label: 'Đắp nền K98 (lớp trên)' },
-      { id: 'nen-k95',      group: 'Đường bộ',    label: 'Đắp nền K95 (lớp dưới)' },
-      { id: 'nen-k90',      group: 'Đường bộ',    label: 'Đắp đáy nền K90' },
       // === Khác ===
       { id: 'san-lap',      group: 'Công trình khác', label: 'San lấp mặt bằng' },
       { id: 'ke-de',        group: 'Công trình khác', label: 'Kè đá / đê biển / gia cố taluy' }
@@ -1625,18 +1618,12 @@
       'bt-m200':     { sand: ['cat-7570-tho','cat-7570-min','cat-9205-to'],                  rock: ['da-7570-2x4','da-7570-4x6'] },
       'bt-dul':      { sand: ['cat-7570-tho'],                                              rock: ['da-7570-1x2-20'] },
       'bt-khoi-lon': { sand: ['cat-7570-tho','cat-7570-min'],                                rock: ['da-7570-2x4','da-7570-4x6'] },
-      'bt-nhua':     {                                                                      rock: ['da-mi-sang','da-mi-bui','da-7570-1x2-20'] },
       'vua-m100':    { sand: ['cat-9205-to'] },
       'vua-m75':     { sand: ['cat-9205-to','cat-9205-vua'] },
       'vua-m50':     { sand: ['cat-9205-to','cat-9205-vua'] },
       'vua-m25':     { sand: ['cat-9205-vua','cat-9205-nho'] },
       'vua-to':      { sand: ['cat-9205-nho','cat-9205-min'] },
       'vua-hoan':    { sand: ['cat-9205-min'] },
-      'duong-base':    { rock: ['da-8859-cp1-25','da-8859-cp1-375'] },
-      'duong-subbase': { rock: ['da-8859-cp2-375','da-8859-cp2-50'] },
-      'nen-k98':       { soil: ['dat-9436-k98','dat-5747-soi','dat-5747-cat','dat-5747-pha-cat'] },
-      'nen-k95':       { soil: ['dat-9436-k95','dat-5747-soi','dat-5747-cat','dat-5747-pha-cat','dat-doi'] },
-      'nen-k90':       { soil: ['dat-9436-k90','dat-doi','dat-san-lap'] },
       'san-lap':       { sand: ['cat-san-lap','cat-bien'], soil: ['dat-san-lap','dat-doi','dat-5747-cat','dat-5747-pha-cat'] },
       'ke-de':         { rock: ['da-1771-hoc','da-1771-5x7'] }
     };
@@ -1650,18 +1637,12 @@
       'bt-m200':     'Có thể dùng cát mịn / cát to + đá 2×4 hoặc 4×6',
       'bt-dul':      'Khắt khe nhất: Cl⁻ ≤ 0.01%, đá 1×2 Dmax 20mm, đá gốc ≥ 100 MPa',
       'bt-khoi-lon': 'Đá lớn (4×6) giúp giảm nhiệt thuỷ hoá; cát mịn cũng dùng được',
-      'bt-nhua':     'Cốt liệu là đá mi sàng / mi bụi / đá 1×2 Dmax 20',
       'vua-m100':    'Bắt buộc cát to (Mđl ≥ 2.0) — TCVN 9205:2012',
       'vua-m75':     'Cát to hoặc vừa (Mđl ≥ 1.5)',
       'vua-m50':     'Cát to hoặc vừa',
       'vua-m25':     'Cát vừa hoặc nhỏ',
       'vua-to':      'Cát nhỏ / mịn cho lớp tô tường',
       'vua-hoan':    'Cát mịn (Mđl 0.6–0.7) cho lớp trát mỏng',
-      'duong-base':    'CPĐD loại I — CBR ≥ 100%, LA ≤ 35%, PI ≤ 6',
-      'duong-subbase': 'CPĐD loại II — CBR ≥ 80%, LA ≤ 40%',
-      'nen-k98':       'Đất phải đạt độ chặt K ≥ 0.98, CBR ≥ 6%, PI ≤ 12',
-      'nen-k95':       'Đất phải đạt K ≥ 0.95, CBR ≥ 5%, PI ≤ 18',
-      'nen-k90':       'Đất phải đạt K ≥ 0.90, CBR ≥ 4%',
       'san-lap':       'Cát san lấp / đất san lấp / đất đồi — không yêu cầu cao',
       'ke-de':         'Đá hộc 150–300mm hoặc đá 5×7, mác đá ≥ M600'
     };
