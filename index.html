@@ -2884,19 +2884,22 @@
       const tag = $('provinceAutoTag');
       const sel = $('provinceSelect');
       if (state.province) {
-        // Sync dropdown if not manual
-        if (sel.value !== state.province && tag.classList.contains('detected')) {
-          sel.value = state.province;
-        }
+        // LUÔN sync dropdown khi auto-detect (tag không phải manual)
         if (!tag.classList.contains('manual')) {
-          tag.textContent = 'tự nhận';
+          sel.value = state.province;
+          tag.textContent = 'tự nhận: ' + (window.PROVINCES_DB[state.province]?.name || state.province);
           tag.className = 'auto-tag detected';
+        } else {
+          // manual mode: chỉ update text, không đè dropdown
+          tag.textContent = 'thủ công: ' + (window.PROVINCES_DB[state.province]?.name || state.province);
         }
       } else {
+        sel.value = '';
         if (!tag.classList.contains('manual')) {
           tag.textContent = 'chưa có';
           tag.className = 'auto-tag';
-          sel.value = '';
+        } else {
+          tag.textContent = 'thủ công';
         }
       }
     };
