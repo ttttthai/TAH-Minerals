@@ -594,6 +594,91 @@
     }
     .nearest-more-btn:hover { background: #f0fdf4; }
 
+    /* Info icon + detail modal */
+    .mine-info-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px;
+      margin-left: 6px;
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--primary);
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 700;
+      font-style: italic;
+      font-family: Georgia, serif;
+      cursor: pointer;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+    .mine-info-btn:hover { background: var(--accent); border-color: var(--primary); }
+    .nm-info-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 18px; height: 18px;
+      margin-left: 4px;
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--success);
+      border-radius: 50%;
+      font-size: 10px;
+      font-weight: 700;
+      font-style: italic;
+      font-family: Georgia, serif;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .nm-info-btn:hover { background: #f0fdf4; }
+    .md-row {
+      display: flex; gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .md-row:last-child { border-bottom: none; }
+    .md-k {
+      flex: 0 0 130px;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      font-weight: 600;
+    }
+    .md-v { flex: 1; color: var(--text); word-break: break-word; }
+    .md-v a { color: var(--primary); text-decoration: none; }
+    .md-v a:hover { text-decoration: underline; }
+    .md-source .md-v { font-size: 11px; }
+    .md-actions {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 2px solid var(--border);
+    }
+    .md-btn {
+      flex: 1 1 auto;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--text);
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+    }
+    .md-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .md-btn.primary { background: var(--primary); color: white; border-color: var(--primary); }
+    .md-btn.primary:hover { background: var(--primary-dark); color: white; }
+    .md-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+    .md-pills .pill {
+      font-size: 11px;
+      padding: 3px 9px;
+      background: #f1f5f9;
+      border-radius: 10px;
+      color: var(--text);
+    }
+
     /* Province selector row */
     .province-row {
       display: flex; gap: 6px; align-items: stretch;
@@ -3066,6 +3151,17 @@
     renderLegs();
   </script>
 
+  <!-- MODAL: Chi tiết mỏ -->
+  <div class="modal-bg" id="mineDetailModal">
+    <div class="modal" style="max-width:580px">
+      <div class="modal-head">
+        <h3 id="mineDetailTitle">Chi tiết mỏ</h3>
+        <button class="modal-close" data-close-modal="mineDetailModal" type="button">✕</button>
+      </div>
+      <div class="modal-list" id="mineDetailBody" style="padding:14px"></div>
+    </div>
+  </div>
+
   <!-- MODAL: Chọn mỏ từ DB -->
   <div class="modal-bg" id="mineModal">
     <div class="modal">
@@ -3184,7 +3280,7 @@
       list.innerHTML = filtered.map(m => `
         <div class="mine-card" data-id="${m.id}">
           <div class="top">
-            <div class="name">${m.name}</div>
+            <div class="name">${m.name}<button class="mine-info-btn" data-info="${m.id}" type="button" title="Xem chi tiết mỏ">i</button></div>
             <span class="badge">${matLabel[m.material]||'?'} · ${regionLabel[m.region]||'?'}</span>
           </div>
           <div class="meta">
@@ -3195,8 +3291,56 @@
         </div>
       `).join('');
       list.querySelectorAll('.mine-card').forEach(card => {
-        card.addEventListener('click', () => selectMine(card.dataset.id));
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.mine-info-btn')) return; // click vào info → bỏ qua selectMine
+          selectMine(card.dataset.id);
+        });
       });
+      list.querySelectorAll('.mine-info-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          showMineDetail(btn.dataset.info);
+        });
+      });
+    }
+
+    // ===== Modal CHI TIẾT MỎ =====
+    function showMineDetail(id) {
+      const m = (window.MINES_DB || []).find(x => x.id === id);
+      if (!m) return;
+      const matFull = { sand: 'Cát', rock: 'Đá', soil: 'Đất' }[m.material] || '—';
+      const reg = regionLabel[m.region] || '—';
+      const stat = statusLabel[m.status] || m.status || '—';
+      let html = '';
+      html += `<div class="md-row"><span class="md-k">Loại vật liệu</span><span class="md-v">${matFull}${m.subtype ? ' — ' + m.subtype : ''}</span></div>`;
+      html += `<div class="md-row"><span class="md-k">Đơn vị KT</span><span class="md-v">${m.operator || '—'}</span></div>`;
+      html += `<div class="md-row"><span class="md-k">Vị trí</span><span class="md-v">${m.district || '—'}, ${m.province || '—'} · ${reg}</span></div>`;
+      if (m.lat != null && m.lon != null) {
+        const approx = m.locationApprox ? ' <span style="color:var(--muted);font-size:11px">(xấp xỉ centroid huyện)</span>' : '';
+        html += `<div class="md-row"><span class="md-k">Toạ độ</span><span class="md-v">${m.lat}, ${m.lon}${approx}</span></div>`;
+      }
+      html += `<div class="md-row"><span class="md-k">Trạng thái</span><span class="md-v">${stat}</span></div>`;
+      if (m.capacity) html += `<div class="md-row"><span class="md-k">Công suất / Trữ lượng</span><span class="md-v">${m.capacity}</span></div>`;
+      if (m.products && m.products.length) {
+        html += `<div class="md-row"><span class="md-k">Sản phẩm</span><span class="md-v"><div class="md-pills">${m.products.map(p => `<span class="pill">${p}</span>`).join('')}</div></span></div>`;
+      }
+      if (m.source) {
+        html += `<div class="md-row md-source"><span class="md-k">Nguồn dữ liệu</span><span class="md-v"><a href="${m.source}" target="_blank" rel="noopener">${m.source}</a></span></div>`;
+      }
+      html += `<div class="md-actions">`;
+      if (m.lat != null && m.lon != null) {
+        html += `<a class="md-btn" href="https://www.google.com/maps/search/?api=1&query=${m.lat},${m.lon}" target="_blank" rel="noopener">🗺️ Mở Google Maps</a>`;
+      }
+      html += `<button class="md-btn primary" type="button" id="mineDetailSelectBtn">⛏️ Chọn mỏ này làm điểm xuất</button>`;
+      html += `</div>`;
+      $('mineDetailTitle').textContent = '📋 ' + m.name;
+      $('mineDetailBody').innerHTML = html;
+      const selBtn = $('mineDetailSelectBtn');
+      if (selBtn) selBtn.addEventListener('click', () => {
+        selectMine(m.id);
+        $('mineDetailModal').classList.remove('show');
+      });
+      $('mineDetailModal').classList.add('show');
     }
 
     function selectMine(id) {
@@ -3353,7 +3497,7 @@
       let html = slice.map(m => `
         <div class="nearest-item" data-id="${m.id}">
           <div>
-            <div class="nm-name">${m.name}</div>
+            <div class="nm-name">${m.name}<button class="nm-info-btn" data-info="${m.id}" type="button" title="Xem chi tiết mỏ">i</button></div>
             <div class="nm-meta">${m.district}, ${m.province} · ${m.operator || ''}</div>
           </div>
           <div class="nm-dist">${fmtN(Math.round(m.dist))} km</div>
@@ -3366,7 +3510,16 @@
       }
       $('nearestList').innerHTML = html;
       $('nearestList').querySelectorAll('.nearest-item').forEach(it => {
-        it.addEventListener('click', () => selectMine(it.dataset.id));
+        it.addEventListener('click', (e) => {
+          if (e.target.closest('.nm-info-btn')) return;
+          selectMine(it.dataset.id);
+        });
+      });
+      $('nearestList').querySelectorAll('.nm-info-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          showMineDetail(btn.dataset.info);
+        });
       });
       const moreBtn = $('nearestMoreBtn');
       if (moreBtn) {
