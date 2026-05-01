@@ -881,31 +881,12 @@
             </select>
           </div>
 
+          <!-- Bước 2.1: ĐIỂM ĐẾN (công trình) — chọn trước -->
           <div class="field">
-            <label for="distance">Cự ly (km)</label>
-            <input type="number" id="distance" min="0" step="1" placeholder="VD: 50" />
-            <div class="distance-method" id="distanceMethod">
-              <span class="dot"></span>
-              <span class="text"></span>
-            </div>
-          </div>
-          <div class="field">
-            <label for="origin">Điểm xuất (mỏ / cảng)</label>
+            <label for="destination">📍 Điểm đến — công trình (chọn trước)</label>
             <div class="loc-wrap">
               <div class="loc-input">
-                <input type="text" id="origin" placeholder="Gõ tên mỏ, cảng, địa danh..." autocomplete="off" />
-                <div class="loc-spinner" id="origin-spinner"></div>
-                <div class="suggestions" id="origin-suggestions"></div>
-              </div>
-              <a class="map-btn disabled" id="origin-map" target="_blank" rel="noopener" title="Mở Google Maps">🗺️</a>
-              <button class="db-btn" id="open-mine-db" type="button" title="Chọn mỏ từ danh sách">📋 DB mỏ</button>
-            </div>
-          </div>
-          <div class="field">
-            <label for="destination">Điểm đến (công trình)</label>
-            <div class="loc-wrap">
-              <div class="loc-input">
-                <input type="text" id="destination" placeholder="Gõ tên công trình, địa danh..." autocomplete="off" />
+                <input type="text" id="destination" placeholder="Gõ tên công trình hoặc bấm 🏗️ chọn dự án..." autocomplete="off" />
                 <div class="loc-spinner" id="destination-spinner"></div>
                 <div class="suggestions" id="destination-suggestions"></div>
               </div>
@@ -913,9 +894,35 @@
               <button class="db-btn" id="open-project-db" type="button" title="Chọn dự án Vingroup/Sungroup">🏗️ Dự án</button>
             </div>
           </div>
+
+          <!-- Bước 2.2: GỢI Ý mỏ gần điểm đến (xuất hiện sau khi có dest + material) -->
           <div class="nearest-panel" id="nearestPanel">
-            <h4>📍 Mỏ gần công trình nhất (theo khoảng cách chim bay)</h4>
+            <h4>📍 Gợi ý mỏ gần công trình nhất (chim bay) — bấm để chọn làm điểm xuất</h4>
             <div class="nearest-list" id="nearestList"></div>
+          </div>
+
+          <!-- Bước 2.3: ĐIỂM XUẤT (mỏ) — gõ tên hoặc chọn từ DB -->
+          <div class="field">
+            <label for="origin">⛏️ Điểm xuất — mỏ / cảng</label>
+            <div class="loc-wrap">
+              <div class="loc-input">
+                <input type="text" id="origin" placeholder="Gõ tên mỏ hoặc bấm 📋 chọn từ DB..." autocomplete="off" />
+                <div class="loc-spinner" id="origin-spinner"></div>
+                <div class="suggestions" id="origin-suggestions"></div>
+              </div>
+              <a class="map-btn disabled" id="origin-map" target="_blank" rel="noopener" title="Mở Google Maps">🗺️</a>
+              <button class="db-btn" id="open-mine-db" type="button" title="Chọn mỏ từ danh sách">📋 DB mỏ</button>
+            </div>
+          </div>
+
+          <!-- Bước 2.4: CỰ LY — tự động sau khi có cả 2 điểm -->
+          <div class="field">
+            <label for="distance">📏 Cự ly (km) — tự tính sau khi chọn 2 điểm</label>
+            <input type="number" id="distance" min="0" step="1" placeholder="Tự động tính khi đủ điểm xuất + đến" />
+            <div class="distance-method" id="distanceMethod">
+              <span class="dot"></span>
+              <span class="text"></span>
+            </div>
           </div>
         </div>
 
