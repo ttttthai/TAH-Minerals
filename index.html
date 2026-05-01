@@ -37,17 +37,17 @@
       max-width: 1280px;
       margin: 14px auto;
       padding: 0 14px;
-      display: flex;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 380px;
+      grid-auto-flow: row;
       gap: 14px;
-      align-items: flex-start;
+      align-items: start;
     }
-    .container > div:first-child { flex: 1 1 0; min-width: 0; } /* cột trái co giãn */
-    .container > div:last-child  { flex: 0 0 380px; min-width: 0; } /* cột phải cố định 380px */
-    @media (max-width: 900px) {
-      .container { flex-direction: column; }
-      .container > div { width: 100%; flex: 1 1 auto; }
-    }
+    .container > div { min-width: 0; }
     .container > div > .card { width: 100%; }
+    @media (max-width: 900px) {
+      .container { grid-template-columns: 1fr; }
+    }
 
     .card {
       background: var(--card);
