@@ -374,6 +374,206 @@
       padding: 4px;
     }
 
+    /* DB Picker buttons (next to location fields) */
+    .db-btn {
+      flex: 0 0 auto;
+      padding: 0 10px;
+      border: 1px solid var(--border);
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text);
+      display: flex; align-items: center; justify-content: center;
+      gap: 4px;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .db-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* Modal overlay */
+    .modal-bg {
+      position: fixed; inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      z-index: 1000;
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 16px 16px;
+      overflow-y: auto;
+    }
+    .modal-bg.show { display: flex; }
+    .modal {
+      background: white;
+      border-radius: 10px;
+      max-width: 720px;
+      width: 100%;
+      max-height: calc(100vh - 56px);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+    }
+    .modal-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--primary);
+      color: white;
+    }
+    .modal-head h3 { margin: 0; font-size: 14px; font-weight: 600; }
+    .modal-close {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      width: 26px; height: 26px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+    }
+    .modal-close:hover { background: rgba(255,255,255,0.35); }
+    .modal-filters {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      background: #fafafa;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .modal-filters input[type="text"] {
+      width: 100%;
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    .filter-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip {
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      background: white;
+      border-radius: 14px;
+      font-size: 11px;
+      cursor: pointer;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .chip:hover { border-color: var(--primary); }
+    .chip.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    .modal-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px;
+      min-height: 200px;
+      max-height: 60vh;
+    }
+    .mine-card {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      transition: all 0.12s;
+      background: white;
+    }
+    .mine-card:hover {
+      border-color: var(--primary);
+      background: #fff7ed;
+    }
+    .mine-card .top {
+      display: flex; justify-content: space-between; gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 4px;
+    }
+    .mine-card .name {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.3;
+    }
+    .mine-card .badge {
+      flex-shrink: 0;
+      padding: 2px 8px;
+      background: var(--accent);
+      color: var(--primary-dark);
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .mine-card .meta {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .mine-card .meta b { color: var(--text); font-weight: 500; }
+    .mine-card .products {
+      margin-top: 4px;
+      display: flex; flex-wrap: wrap; gap: 4px;
+    }
+    .mine-card .pill {
+      font-size: 10px;
+      padding: 1px 7px;
+      background: #f1f5f9;
+      border-radius: 8px;
+      color: var(--muted);
+    }
+    .modal-empty {
+      text-align: center;
+      padding: 30px 16px;
+      color: var(--muted);
+      font-size: 12px;
+      font-style: italic;
+    }
+
+    /* Nearest mines panel */
+    .nearest-panel {
+      margin-top: 10px;
+      padding: 10px 12px;
+      background: #ecfdf5;
+      border: 1px solid #6ee7b7;
+      border-radius: 6px;
+      display: none;
+    }
+    .nearest-panel.show { display: block; }
+    .nearest-panel h4 {
+      margin: 0 0 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--success);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .nearest-list {
+      display: flex; flex-direction: column; gap: 5px;
+    }
+    .nearest-item {
+      padding: 6px 8px;
+      background: white;
+      border: 1px solid #d1fae5;
+      border-radius: 5px;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex; justify-content: space-between; gap: 8px;
+      transition: all 0.12s;
+    }
+    .nearest-item:hover {
+      border-color: var(--success);
+      background: #f0fdf4;
+    }
+    .nearest-item .nm-name { font-weight: 500; color: var(--text); }
+    .nearest-item .nm-meta { color: var(--muted); font-size: 10px; }
+    .nearest-item .nm-dist {
+      flex-shrink: 0;
+      font-weight: 700;
+      color: var(--success);
+      font-variant-numeric: tabular-nums;
+    }
+
     /* Spec card cho TCVN */
     .spec-card {
       margin-top: 6px;
@@ -522,6 +722,7 @@
       font-style: italic;
     }
   </style>
+  <script src="mines-db.js"></script>
 </head>
 <body>
   <header>
@@ -624,6 +825,7 @@
                 <div class="suggestions" id="origin-suggestions"></div>
               </div>
               <a class="map-btn disabled" id="origin-map" target="_blank" rel="noopener" title="Mở Google Maps">🗺️</a>
+              <button class="db-btn" id="open-mine-db" type="button" title="Chọn mỏ từ danh sách">📋 DB mỏ</button>
             </div>
           </div>
           <div class="field">
@@ -635,7 +837,12 @@
                 <div class="suggestions" id="destination-suggestions"></div>
               </div>
               <a class="map-btn disabled" id="destination-map" target="_blank" rel="noopener" title="Mở Google Maps">🗺️</a>
+              <button class="db-btn" id="open-project-db" type="button" title="Chọn dự án Vingroup/Sungroup">🏗️ Dự án</button>
             </div>
+          </div>
+          <div class="nearest-panel" id="nearestPanel">
+            <h4>📍 Mỏ gần công trình nhất (theo khoảng cách chim bay)</h4>
+            <div class="nearest-list" id="nearestList"></div>
           </div>
         </div>
 
@@ -1677,6 +1884,7 @@
         setDistanceMethod('approx', `Đường chim bay × ${mul} cho đường ${desc} (${fmtN(adj)} km)`);
       }
       refreshSummary();
+      if (window.maybeShowNearest) window.maybeShowNearest();
     }
 
     // ---- TÍNH GIÁ THEO VÙNG ----
@@ -1823,6 +2031,7 @@
       updateSpecCard();
       refreshAllRefs();
       refreshSummary();
+      if (window.maybeShowNearest) window.maybeShowNearest();
     });
 
     $('subMaterial').addEventListener('change', (e) => {
@@ -1836,6 +2045,7 @@
       updateSpecCard();
       refreshAllRefs();
       refreshSummary();
+      if (window.maybeShowNearest) window.maybeShowNearest();
     });
 
     $('quantity').addEventListener('input', (e) => { state.quantity = e.target.value; refreshSummary(); });
@@ -2413,9 +2623,296 @@
 
     $('calcBtn').addEventListener('click', calculate);
 
+    // ---- Hooks cho DB picker tương tác với state nội bộ ----
+    window.__setOriginFromDB = function(loc) {
+      state.origin = loc.name;
+      state.originCoords = { lat: loc.lat, lon: loc.lon };
+      state.region = detectRegion(loc.lat);
+      applyRegionDefaults();
+      refreshAllRefs();
+      // Update map button
+      const mapBtn = $('origin-map');
+      mapBtn.href = `https://www.google.com/maps/search/?api=1&query=${loc.lat},${loc.lon}`;
+      mapBtn.classList.remove('disabled');
+      state.distanceManual = false;
+      tryAutoFillDistance();
+      refreshSummary();
+    };
+    window.__setDestinationFromDB = function(loc) {
+      state.destination = loc.name;
+      state.destinationCoords = { lat: loc.lat, lon: loc.lon };
+      const mapBtn = $('destination-map');
+      mapBtn.href = `https://www.google.com/maps/search/?api=1&query=${loc.lat},${loc.lon}`;
+      mapBtn.classList.remove('disabled');
+      state.distanceManual = false;
+      tryAutoFillDistance();
+      refreshSummary();
+    };
+    window.__getDestinationCoords = function() { return state.destinationCoords; };
+    window.__getCurrentMaterial    = function() { return state.material; };
+
     refreshSummary();
     refreshAllRefs();
     renderLegs();
+  </script>
+
+  <!-- MODAL: Chọn mỏ từ DB -->
+  <div class="modal-bg" id="mineModal">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>📋 Chọn mỏ từ database (127 mỏ)</h3>
+        <button class="modal-close" data-close-modal="mineModal" type="button">✕</button>
+      </div>
+      <div class="modal-filters">
+        <input type="text" id="mineSearch" placeholder="Tìm theo tên mỏ, công ty, tỉnh, huyện..." />
+        <div class="filter-chips" id="mineMatChips">
+          <span class="chip active" data-mat="">Tất cả</span>
+          <span class="chip" data-mat="sand">Cát</span>
+          <span class="chip" data-mat="rock">Đá</span>
+          <span class="chip" data-mat="soil">Đất</span>
+        </div>
+        <div class="filter-chips" id="mineRegionChips">
+          <span class="chip active" data-region="">Cả nước</span>
+          <span class="chip" data-region="north">Miền Bắc</span>
+          <span class="chip" data-region="central">Miền Trung</span>
+          <span class="chip" data-region="southeast">Đông Nam Bộ</span>
+          <span class="chip" data-region="mekong">ĐB SCL</span>
+        </div>
+      </div>
+      <div class="modal-list" id="mineList"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: Chọn dự án -->
+  <div class="modal-bg" id="projectModal">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>🏗️ Chọn dự án Vingroup / Sungroup (59 dự án)</h3>
+        <button class="modal-close" data-close-modal="projectModal" type="button">✕</button>
+      </div>
+      <div class="modal-filters">
+        <input type="text" id="projectSearch" placeholder="Tìm theo tên dự án, tỉnh, huyện..." />
+        <div class="filter-chips" id="projectGroupChips">
+          <span class="chip active" data-group="">Tất cả</span>
+          <span class="chip" data-group="vingroup">Vingroup</span>
+          <span class="chip" data-group="sungroup">Sungroup</span>
+        </div>
+        <div class="filter-chips" id="projectStatusChips">
+          <span class="chip active" data-status="">Mọi trạng thái</span>
+          <span class="chip" data-status="active">Đang triển khai</span>
+          <span class="chip" data-status="upcoming">Sắp triển khai</span>
+          <span class="chip" data-status="planned">Đã quy hoạch</span>
+        </div>
+      </div>
+      <div class="modal-list" id="projectList"></div>
+    </div>
+  </div>
+
+  <script>
+  // ---- DB PICKER LOGIC ----
+  (function() {
+    const $ = (id) => document.getElementById(id);
+    const fmtN = (n) => Number(n||0).toLocaleString('vi-VN', {maximumFractionDigits: 0});
+    const matLabel = { sand: 'Cát', rock: 'Đá', soil: 'Đất' };
+    const regionLabel = { north: 'Miền Bắc', central: 'Miền Trung', southeast: 'Đông Nam Bộ', mekong: 'ĐB SCL' };
+    const statusLabel = { active: 'Đang khai thác', upcoming: 'Sắp triển khai', planned: 'Đã quy hoạch', completed: 'Hoàn thành', depleted: 'Đã hết', paused: 'Tạm dừng', unknown: '—' };
+
+    function openModal(id) { $(id).classList.add('show'); }
+    function closeModal(id) { $(id).classList.remove('show'); }
+
+    document.querySelectorAll('[data-close-modal]').forEach(btn => {
+      btn.addEventListener('click', () => closeModal(btn.dataset.closeModal));
+    });
+    document.querySelectorAll('.modal-bg').forEach(bg => {
+      bg.addEventListener('click', (e) => { if (e.target === bg) bg.classList.remove('show'); });
+    });
+
+    // ===== MINE PICKER =====
+    let mineFilter = { mat: '', region: '', search: '' };
+
+    function renderMineList() {
+      const list = $('mineList');
+      const q = mineFilter.search.toLowerCase().trim();
+      const filtered = (window.MINES_DB || []).filter(m => {
+        if (mineFilter.mat && m.material !== mineFilter.mat) return false;
+        if (mineFilter.region && m.region !== mineFilter.region) return false;
+        if (q) {
+          const hay = [m.name, m.operator, m.province, m.district, m.subtype].join(' ').toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+      if (!filtered.length) {
+        list.innerHTML = '<div class="modal-empty">Không tìm thấy mỏ phù hợp với bộ lọc</div>';
+        return;
+      }
+      list.innerHTML = filtered.map(m => `
+        <div class="mine-card" data-id="${m.id}">
+          <div class="top">
+            <div class="name">${m.name}</div>
+            <span class="badge">${matLabel[m.material]||'?'} · ${regionLabel[m.region]||'?'}</span>
+          </div>
+          <div class="meta">
+            <b>${m.operator || '—'}</b><br/>
+            ${m.district || '?'}, ${m.province || '?'} · ${m.subtype || ''} ${m.capacity ? '· ' + m.capacity : ''}
+          </div>
+          ${(m.products && m.products.length) ? `<div class="products">${m.products.map(p => `<span class="pill">${p}</span>`).join('')}</div>` : ''}
+        </div>
+      `).join('');
+      list.querySelectorAll('.mine-card').forEach(card => {
+        card.addEventListener('click', () => selectMine(card.dataset.id));
+      });
+    }
+
+    function selectMine(id) {
+      const m = (window.MINES_DB || []).find(x => x.id === id);
+      if (!m) return;
+      // Fill origin field + dispatch event for autocomplete to trigger region detection
+      const originInput = $('origin');
+      originInput.value = m.name + ' — ' + m.district + ', ' + m.province;
+      // Set state coords directly via global state if exposed; emulate selectSuggestion
+      if (window.__setOriginFromDB) {
+        window.__setOriginFromDB({ name: originInput.value, lat: m.lat, lon: m.lon });
+      }
+      closeModal('mineModal');
+      maybeShowNearest();
+    }
+
+    $('mineSearch').addEventListener('input', (e) => { mineFilter.search = e.target.value; renderMineList(); });
+    document.querySelectorAll('#mineMatChips .chip').forEach(c => {
+      c.addEventListener('click', () => {
+        document.querySelectorAll('#mineMatChips .chip').forEach(x => x.classList.remove('active'));
+        c.classList.add('active');
+        mineFilter.mat = c.dataset.mat;
+        renderMineList();
+      });
+    });
+    document.querySelectorAll('#mineRegionChips .chip').forEach(c => {
+      c.addEventListener('click', () => {
+        document.querySelectorAll('#mineRegionChips .chip').forEach(x => x.classList.remove('active'));
+        c.classList.add('active');
+        mineFilter.region = c.dataset.region;
+        renderMineList();
+      });
+    });
+
+    $('open-mine-db').addEventListener('click', () => {
+      // Pre-filter by current material if available
+      const curMat = (window.__getCurrentMaterial && window.__getCurrentMaterial()) || '';
+      if (curMat) {
+        mineFilter.mat = curMat;
+        document.querySelectorAll('#mineMatChips .chip').forEach(x => {
+          x.classList.toggle('active', x.dataset.mat === curMat);
+        });
+      }
+      renderMineList();
+      openModal('mineModal');
+    });
+
+    // ===== PROJECT PICKER =====
+    let projectFilter = { group: '', status: '', search: '' };
+
+    function renderProjectList() {
+      const list = $('projectList');
+      const q = projectFilter.search.toLowerCase().trim();
+      const filtered = (window.PROJECTS_DB || []).filter(p => {
+        if (projectFilter.group && p.group !== projectFilter.group) return false;
+        if (projectFilter.status && p.status !== projectFilter.status) return false;
+        if (q) {
+          const hay = [p.name, p.province, p.district, p.type, p.phase, p.scale].join(' ').toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+      if (!filtered.length) {
+        list.innerHTML = '<div class="modal-empty">Không tìm thấy dự án phù hợp</div>';
+        return;
+      }
+      list.innerHTML = filtered.map(p => `
+        <div class="mine-card" data-id="${p.id}">
+          <div class="top">
+            <div class="name">${p.name}</div>
+            <span class="badge">${p.group === 'vingroup' ? 'Vingroup' : 'Sungroup'} · ${statusLabel[p.status]||p.status}</span>
+          </div>
+          <div class="meta">
+            ${p.district || '?'}, ${p.province || '?'} · ${p.type || ''} ${p.scale ? '· ' + p.scale : ''} ${p.phase ? '· ' + p.phase : ''}
+          </div>
+        </div>
+      `).join('');
+      list.querySelectorAll('.mine-card').forEach(card => {
+        card.addEventListener('click', () => selectProject(card.dataset.id));
+      });
+    }
+
+    function selectProject(id) {
+      const p = (window.PROJECTS_DB || []).find(x => x.id === id);
+      if (!p) return;
+      const destInput = $('destination');
+      destInput.value = p.name + ' — ' + p.district + ', ' + p.province;
+      if (window.__setDestinationFromDB) {
+        window.__setDestinationFromDB({ name: destInput.value, lat: p.lat, lon: p.lon });
+      }
+      closeModal('projectModal');
+      maybeShowNearest();
+    }
+
+    $('projectSearch').addEventListener('input', (e) => { projectFilter.search = e.target.value; renderProjectList(); });
+    document.querySelectorAll('#projectGroupChips .chip').forEach(c => {
+      c.addEventListener('click', () => {
+        document.querySelectorAll('#projectGroupChips .chip').forEach(x => x.classList.remove('active'));
+        c.classList.add('active');
+        projectFilter.group = c.dataset.group;
+        renderProjectList();
+      });
+    });
+    document.querySelectorAll('#projectStatusChips .chip').forEach(c => {
+      c.addEventListener('click', () => {
+        document.querySelectorAll('#projectStatusChips .chip').forEach(x => x.classList.remove('active'));
+        c.classList.add('active');
+        projectFilter.status = c.dataset.status;
+        renderProjectList();
+      });
+    });
+
+    $('open-project-db').addEventListener('click', () => {
+      renderProjectList();
+      openModal('projectModal');
+    });
+
+    // ===== NEAREST MINES PANEL =====
+    function haversineKm(lat1, lon1, lat2, lon2) {
+      const R = 6371, toRad = d => d * Math.PI / 180;
+      const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+      return 2 * R * Math.asin(Math.sqrt(a));
+    }
+
+    window.maybeShowNearest = function() {
+      const dest = window.__getDestinationCoords && window.__getDestinationCoords();
+      const mat  = window.__getCurrentMaterial && window.__getCurrentMaterial();
+      const panel = $('nearestPanel');
+      if (!dest || !mat) { panel.classList.remove('show'); return; }
+      const ranked = (window.MINES_DB || [])
+        .filter(m => m.material === mat && typeof m.lat === 'number' && typeof m.lon === 'number')
+        .map(m => ({ ...m, dist: haversineKm(dest.lat, dest.lon, m.lat, m.lon) }))
+        .sort((a, b) => a.dist - b.dist)
+        .slice(0, 8);
+      if (!ranked.length) { panel.classList.remove('show'); return; }
+      $('nearestList').innerHTML = ranked.map(m => `
+        <div class="nearest-item" data-id="${m.id}">
+          <div>
+            <div class="nm-name">${m.name}</div>
+            <div class="nm-meta">${m.district}, ${m.province} · ${m.operator || ''}</div>
+          </div>
+          <div class="nm-dist">${fmtN(Math.round(m.dist))} km</div>
+        </div>
+      `).join('');
+      $('nearestList').querySelectorAll('.nearest-item').forEach(it => {
+        it.addEventListener('click', () => selectMine(it.dataset.id));
+      });
+      panel.classList.add('show');
+    };
+  })();
   </script>
 </body>
 </html>
