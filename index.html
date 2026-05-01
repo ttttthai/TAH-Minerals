@@ -574,6 +574,89 @@
       font-variant-numeric: tabular-nums;
     }
 
+    /* Province selector row */
+    .province-row {
+      display: flex; gap: 6px; align-items: stretch;
+      margin-bottom: 10px;
+      padding: 8px 10px;
+      background: #fef3c7;
+      border: 1px solid #fbbf24;
+      border-radius: 6px;
+    }
+    .province-row label {
+      font-size: 11px;
+      color: var(--primary-dark);
+      font-weight: 700;
+      align-self: center;
+      white-space: nowrap;
+    }
+    .province-row select {
+      flex: 1;
+      padding: 5px 8px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: 12px;
+      background: white;
+    }
+    .province-row .auto-tag {
+      flex: 0 0 auto;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: white;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      align-self: center;
+    }
+    .province-row .auto-tag.detected { background: #dcfce7; color: #15803d; border-color: #6ee7b7; }
+    .province-row .auto-tag.manual   { background: #ffedd5; color: #c2410c; border-color: #fdba74; }
+    .compare-btn {
+      padding: 4px 10px;
+      border: 1px solid var(--primary);
+      background: white;
+      color: var(--primary);
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .compare-btn:hover { background: var(--primary); color: white; }
+
+    /* Comparison modal table */
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+    .compare-table th, .compare-table td {
+      padding: 6px 8px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .compare-table th {
+      background: #f8fafc;
+      font-weight: 600;
+      position: sticky; top: 0;
+      cursor: pointer;
+      user-select: none;
+    }
+    .compare-table th:hover { background: var(--accent); }
+    .compare-table td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; }
+    .compare-table tr:hover td { background: #fef3c7; }
+    .compare-table tr.current td { background: #fef3c7; font-weight: 600; }
+    .region-tag {
+      display: inline-block;
+      padding: 1px 6px;
+      font-size: 10px;
+      border-radius: 8px;
+      font-weight: 500;
+    }
+    .region-tag.north     { background: #dbeafe; color: #1e40af; }
+    .region-tag.central   { background: #fef3c7; color: #92400e; }
+    .region-tag.southeast { background: #fee2e2; color: #991b1b; }
+    .region-tag.mekong    { background: #d1fae5; color: #065f46; }
+
     /* Spec card cho TCVN */
     .spec-card {
       margin-top: 6px;
@@ -860,6 +943,15 @@
       <!-- CARD 2: COST PARAMETERS -->
       <div class="card">
         <h2>Tham số chi phí <span style="font-weight:400; font-size:12px; color:var(--muted)">(tự động điền theo lựa chọn — có thể chỉnh sửa)</span></h2>
+
+        <div class="province-row">
+          <label>Tỉnh áp giá:</label>
+          <select id="provinceSelect">
+            <option value="">— Tự động phát hiện —</option>
+          </select>
+          <span class="auto-tag" id="provinceAutoTag">chưa có</span>
+          <button class="compare-btn" id="compareProvincesBtn" type="button" title="So sánh giá 34 tỉnh">📊 So sánh</button>
+        </div>
 
         <div class="section">
           <div class="section-title">A. Chi phí tại mỏ &amp; bốc xếp <span class="region-badge" id="regionBadge" style="display:none"></span></div>
@@ -1940,19 +2032,76 @@
       }
       return opts.join('');
     }
+    // Build "tỉnh lân cận" — top 5 tỉnh gần nhất theo Haversine từ originCoords (hoặc từ tỉnh đã chọn)
+    function nearestProvinces(n = 5) {
+      const provinces = window.PROVINCES_DB || {};
+      const slugs = Object.keys(provinces);
+      let pivotLat = null, pivotLon = null;
+      if (state.originCoords) {
+        pivotLat = state.originCoords.lat; pivotLon = state.originCoords.lon;
+      } else if (state.province && provinces[state.province]) {
+        pivotLat = provinces[state.province].lat; pivotLon = provinces[state.province].lon;
+      }
+      if (pivotLat == null) return [];
+      const toRad = d => d * Math.PI / 180;
+      const ranked = slugs.map(s => {
+        const p = provinces[s];
+        if (typeof p.lat !== 'number') return null;
+        const dx = (p.lat - pivotLat) * 111;
+        const dy = (p.lon - pivotLon) * 111 * Math.cos(toRad(p.lat));
+        return { slug: s, name: p.name, dist: Math.sqrt(dx*dx + dy*dy), data: p };
+      }).filter(Boolean).sort((a, b) => a.dist - b.dist).slice(0, n);
+      return ranked;
+    }
+    function buildProvinceRefOptions(priceGetter, formatter) {
+      const top = nearestProvinces(5);
+      if (!top.length) return '<option value="">📍 Chọn mỏ trước</option>';
+      const cur = state.province;
+      const opts = ['<option value="">📍 Tham khảo tỉnh lân cận…</option>'];
+      for (const t of top) {
+        const v = priceGetter(t.data);
+        if (v == null) continue;
+        const mark = (cur === t.slug) ? ' ★' : '';
+        opts.push(`<option value="${v}">${t.name}${mark} — ${formatter(v)} (${Math.round(t.dist)}km)</option>`);
+      }
+      return opts.join('');
+    }
     function refreshAllRefs() {
       const fmtPrice = v => fmtN(v) + ' ₫';
       const fmtRate  = v => fmtN(v) + ' ₫/km';
-      $('minePriceRef').innerHTML = (state.material && state.subMaterial)
-        ? buildRefOptions(r => getMinePriceByRegion(state.material, state.subMaterial, r), fmtPrice)
-        : '<option value="">📍 Chọn vật liệu trước</option>';
+
+      // Mine price: ưu tiên tỉnh lân cận khi đã có originCoords + material; fallback hệ số vùng
+      if (state.material && state.subMaterial) {
+        const matKey = subMaterialToProvinceKey(state.material, state.subMaterial);
+        if (matKey && (state.originCoords || state.province)) {
+          $('minePriceRef').innerHTML = buildProvinceRefOptions(p => p.prices?.[matKey]?.common, fmtPrice);
+        } else {
+          $('minePriceRef').innerHTML = buildRefOptions(r => getMinePriceByRegion(state.material, state.subMaterial, r), fmtPrice);
+        }
+      } else {
+        $('minePriceRef').innerHTML = '<option value="">📍 Chọn vật liệu trước</option>';
+      }
+
+      // Transport rate vẫn dùng hệ số vùng
       $('transportRateRef').innerHTML = (state.mode && state.subTransport)
         ? buildRefOptions(r => getTransRateByRegion(state.mode, state.subTransport, r), fmtRate)
         : '<option value="">📍 Chọn phương tiện trước</option>';
-      $('loadingFeeRef').innerHTML = buildRefOptions(r => regionLoadingFee[r], fmtPrice);
-      $('envFeeRef').innerHTML = state.material
-        ? buildRefOptions(r => regionEnvFee[state.material][r], fmtPrice)
-        : '<option value="">📍 Chọn vật liệu trước</option>';
+
+      // Loading fee: dùng tỉnh lân cận
+      if (state.originCoords || state.province) {
+        $('loadingFeeRef').innerHTML = buildProvinceRefOptions(p => p.fees?.loadingFeePerM3, fmtPrice);
+      } else {
+        $('loadingFeeRef').innerHTML = buildRefOptions(r => regionLoadingFee[r], fmtPrice);
+      }
+
+      // Env fee: dùng tỉnh lân cận
+      if (state.originCoords || state.province) {
+        $('envFeeRef').innerHTML = buildProvinceRefOptions(p => p.fees?.envFeePerM3, fmtPrice);
+      } else {
+        $('envFeeRef').innerHTML = state.material
+          ? buildRefOptions(r => regionEnvFee[state.material][r], fmtPrice)
+          : '<option value="">📍 Chọn vật liệu trước</option>';
+      }
     }
 
     // ---- ÁP DỤNG GIÁ MẶC ĐỊNH THEO VÙNG (khi chọn mỏ) ----
@@ -2273,14 +2422,18 @@
         state.originCoords = c;
         if (c) {
           state.region = detectRegion(c.lat);
+          // Reset auto-tag flag (origin changed → re-detect)
+          $('provinceAutoTag').className = 'auto-tag detected';
           state.province = (window.detectProvinceByCoords && window.detectProvinceByCoords(c.lat, c.lon))
                            || (window.detectProvinceByName && window.detectProvinceByName(value))
                            || null;
+          if (window.__updateProvinceTag) window.__updateProvinceTag();
           applyRegionDefaults();
           refreshAllRefs();
         } else if (!value.trim()) {
           state.region = null;
           state.province = null;
+          if (window.__updateProvinceTag) window.__updateProvinceTag();
           refreshAllRefs();
         }
         state.distanceManual = false;
@@ -2678,9 +2831,11 @@
       state.origin = loc.name;
       state.originCoords = { lat: loc.lat, lon: loc.lon };
       state.region = detectRegion(loc.lat);
+      $('provinceAutoTag').className = 'auto-tag detected';
       state.province = (window.detectProvinceByCoords && window.detectProvinceByCoords(loc.lat, loc.lon))
                        || (window.detectProvinceByName && window.detectProvinceByName(loc.name))
                        || null;
+      if (window.__updateProvinceTag) window.__updateProvinceTag();
       applyRegionDefaults();
       refreshAllRefs();
       // Update map button
@@ -2703,6 +2858,117 @@
     };
     window.__getDestinationCoords = function() { return state.destinationCoords; };
     window.__getCurrentMaterial    = function() { return state.material; };
+    window.__getProvince           = function() { return state.province; };
+
+    // ---- PROVINCE SELECTOR ----
+    (function initProvinceSelector() {
+      const sel = $('provinceSelect');
+      const provinces = window.PROVINCES_DB || {};
+      const sorted = Object.entries(provinces).sort((a, b) => a[1].name.localeCompare(b[1].name, 'vi'));
+      let html = '<option value="">— Tự động phát hiện theo mỏ —</option>';
+      ['north','central','southeast','mekong'].forEach(reg => {
+        const items = sorted.filter(([,p]) => p.region === reg);
+        if (!items.length) return;
+        html += `<optgroup label="${({north:'Miền Bắc',central:'Miền Trung',southeast:'Đông Nam Bộ',mekong:'ĐB Sông Cửu Long'})[reg]}">`;
+        html += items.map(([slug, p]) => `<option value="${slug}">${p.name}${p.isCity ? ' (TP)' : ''}</option>`).join('');
+        html += '</optgroup>';
+      });
+      sel.innerHTML = html;
+      sel.addEventListener('change', (e) => {
+        const slug = e.target.value;
+        if (slug) {
+          state.province = slug;
+          state.region = (window.PROVINCES_DB[slug] || {}).region || state.region;
+          $('provinceAutoTag').textContent = 'thủ công';
+          $('provinceAutoTag').className = 'auto-tag manual';
+        } else {
+          // Quay lại auto-detect từ origin coords
+          if (state.originCoords) {
+            state.province = window.detectProvinceByCoords(state.originCoords.lat, state.originCoords.lon);
+            $('provinceAutoTag').textContent = 'tự nhận';
+            $('provinceAutoTag').className = 'auto-tag detected';
+          } else {
+            state.province = null;
+            $('provinceAutoTag').textContent = 'chưa có';
+            $('provinceAutoTag').className = 'auto-tag';
+          }
+        }
+        applyRegionDefaults();
+        refreshAllRefs();
+        refreshSummary();
+      });
+    })();
+
+    // Update province auto-tag whenever province changes via auto-detect
+    window.__updateProvinceTag = function() {
+      const tag = $('provinceAutoTag');
+      const sel = $('provinceSelect');
+      if (state.province) {
+        // Sync dropdown if not manual
+        if (sel.value !== state.province && tag.classList.contains('detected')) {
+          sel.value = state.province;
+        }
+        if (!tag.classList.contains('manual')) {
+          tag.textContent = 'tự nhận';
+          tag.className = 'auto-tag detected';
+        }
+      } else {
+        if (!tag.classList.contains('manual')) {
+          tag.textContent = 'chưa có';
+          tag.className = 'auto-tag';
+          sel.value = '';
+        }
+      }
+    };
+
+    // ---- COMPARE 34 PROVINCES MODAL ----
+    function renderCompareTable() {
+      const key = $('compareKey').value;
+      const provinces = window.PROVINCES_DB || {};
+      const rows = Object.entries(provinces)
+        .map(([slug, p]) => ({ slug, name: p.name, region: p.region, isCity: p.isCity, price: p.prices?.[key]?.common, fees: p.fees }))
+        .filter(r => r.price != null)
+        .sort((a, b) => a.price - b.price);
+      const minP = rows[0]?.price || 0;
+      const maxP = rows[rows.length - 1]?.price || 1;
+      const cur = state.province;
+      const regL = { north: 'Bắc', central: 'Trung', southeast: 'ĐNB', mekong: 'SCL' };
+      const tbl = `<table class="compare-table">
+        <thead><tr>
+          <th>Tỉnh</th><th>Vùng</th><th class="num">Giá (₫/m³)</th>
+          <th class="num">Thuế TN</th><th class="num">Phí MT</th>
+        </tr></thead><tbody>
+        ${rows.map(r => `
+          <tr class="${r.slug === cur ? 'current' : ''}" data-slug="${r.slug}">
+            <td>${r.slug === cur ? '★ ' : ''}${r.name}${r.isCity ? ' (TP)' : ''}</td>
+            <td><span class="region-tag ${r.region}">${regL[r.region]}</span></td>
+            <td class="num">${Number(r.price).toLocaleString('vi-VN')}</td>
+            <td class="num">${r.fees?.resourceTaxPct || '-'}%</td>
+            <td class="num">${(r.fees?.envFeePerM3 || 0).toLocaleString('vi-VN')}</td>
+          </tr>
+        `).join('')}
+        </tbody></table>`;
+      $('compareList').innerHTML = tbl;
+      // Click 1 hàng → set tỉnh đó (manual)
+      $('compareList').querySelectorAll('tr[data-slug]').forEach(tr => {
+        tr.addEventListener('click', () => {
+          const slug = tr.dataset.slug;
+          $('provinceSelect').value = slug;
+          $('provinceSelect').dispatchEvent(new Event('change'));
+          $('compareModal').classList.remove('show');
+        });
+      });
+    }
+    $('compareKey').addEventListener('change', renderCompareTable);
+    $('compareProvincesBtn').addEventListener('click', () => {
+      // Default to current sub-material's price key
+      if (state.material && state.subMaterial) {
+        const k = subMaterialToProvinceKey(state.material, state.subMaterial);
+        if (k) $('compareKey').value = k;
+      }
+      renderCompareTable();
+      $('compareModal').classList.add('show');
+    });
 
     refreshSummary();
     refreshAllRefs();
@@ -2733,6 +2999,30 @@
         </div>
       </div>
       <div class="modal-list" id="mineList"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: So sánh giá 34 tỉnh -->
+  <div class="modal-bg" id="compareModal">
+    <div class="modal" style="max-width: 820px">
+      <div class="modal-head">
+        <h3 id="compareTitle">📊 So sánh giá 34 tỉnh</h3>
+        <button class="modal-close" data-close-modal="compareModal" type="button">✕</button>
+      </div>
+      <div class="modal-filters">
+        <select id="compareKey">
+          <option value="sand_concrete">Cát bê tông (Mđl ≥ 2.0)</option>
+          <option value="sand_mortar">Cát vữa xây/tô</option>
+          <option value="sand_fill">Cát san lấp</option>
+          <option value="rock_1x2">Đá 1×2</option>
+          <option value="rock_2x4">Đá 2×4</option>
+          <option value="rock_4x6">Đá 4×6 / cấp phối</option>
+          <option value="rock_riprap">Đá hộc</option>
+          <option value="soil_fill">Đất san lấp</option>
+          <option value="soil_K95">Đất đắp K95/K98</option>
+        </select>
+      </div>
+      <div class="modal-list" id="compareList" style="padding: 0"></div>
     </div>
   </div>
 
