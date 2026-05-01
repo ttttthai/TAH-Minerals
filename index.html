@@ -17,32 +17,91 @@
       --success: #15803d;
     }
     * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
-      line-height: 1.4;
-      font-size: 13px;
+      line-height: 1.45;
+      font-size: 14px;
+      padding-bottom: 80px; /* khoảng cho mobile bottom bar */
+    }
+    @media (min-width: 900px) {
+      body { padding-bottom: 0; font-size: 13px; line-height: 1.4; }
     }
     header {
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
       color: white;
-      padding: 10px 20px;
+      padding: 10px 14px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      position: sticky; top: 0;
+      z-index: 50;
     }
-    header h1 { margin: 0; font-size: 16px; font-weight: 600; }
+    header h1 { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.3; }
+    @media (min-width: 900px) {
+      header { padding: 10px 20px; position: static; }
+      header h1 { font-size: 16px; }
+    }
 
     .container {
       max-width: 1100px;
-      margin: 14px auto;
-      padding: 0 14px;
+      margin: 10px auto;
+      padding: 0 10px;
       display: grid;
-      grid-template-columns: 1fr 300px;
-      gap: 12px;
+      grid-template-columns: 1fr;
+      gap: 10px;
     }
-    @media (max-width: 900px) {
-      .container { grid-template-columns: 1fr; }
+    @media (min-width: 900px) {
+      .container { grid-template-columns: 1fr 300px; gap: 12px; padding: 0 14px; margin-top: 14px; }
+    }
+
+    /* ===== MOBILE BOTTOM BAR (sticky) ===== */
+    .mobile-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: white;
+      border-top: 1px solid var(--border);
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px;
+      z-index: 100;
+    }
+    .mobile-bar .mb-total {
+      flex: 1;
+      display: flex; flex-direction: column; gap: 1px;
+      min-width: 0;
+    }
+    .mobile-bar .mb-total .mb-label {
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .mobile-bar .mb-total .mb-amount {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .mobile-bar button {
+      flex: 0 0 auto;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 44px;
+    }
+    .mobile-bar .mb-summary-btn {
+      background: white; color: var(--primary); border: 1px solid var(--primary);
+    }
+    .mobile-bar .mb-calc-btn {
+      background: var(--primary); color: white;
+    }
+    @media (min-width: 900px) {
+      .mobile-bar { display: none; }
     }
 
     .card {
@@ -62,16 +121,38 @@
       padding-bottom: 6px;
       border-bottom: 1px solid var(--border);
     }
-    .section { margin-bottom: 10px; }
+    .section { margin-bottom: 12px; }
     .section:last-child { margin-bottom: 0; }
     .section-title {
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       color: var(--muted);
-      margin-bottom: 6px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
+    /* Accordion toggle */
+    .section.collapsible > .section-title {
+      cursor: pointer;
+      user-select: none;
+      padding: 6px 4px;
+      margin: -6px -4px 4px;
+      border-radius: 4px;
+      min-height: 32px;
+    }
+    .section.collapsible > .section-title:hover { background: #f8fafc; }
+    .section.collapsible > .section-title::before {
+      content: '▾';
+      font-size: 12px;
+      color: var(--primary);
+      transition: transform 0.15s;
+      display: inline-block;
+    }
+    .section.collapsed > .section-title::before { transform: rotate(-90deg); }
+    .section.collapsed > :not(.section-title) { display: none !important; }
 
     .field { margin-bottom: 8px; }
     .field label {
@@ -114,13 +195,17 @@
     .field select,
     .field input {
       width: 100%;
-      padding: 6px 8px;
+      padding: 9px 10px;
       border: 1px solid var(--border);
       border-radius: 6px;
-      font-size: 12px;
+      font-size: 14px;
       background: white;
       color: var(--text);
       transition: border-color 0.15s, box-shadow 0.15s;
+      min-height: 40px;
+    }
+    @media (min-width: 900px) {
+      .field select, .field input { padding: 6px 8px; font-size: 12px; min-height: 0; }
     }
     .field select:focus,
     .field input:focus {
@@ -146,16 +231,17 @@
       margin-bottom: 8px;
     }
     .mode-btn {
-      padding: 8px 4px;
+      padding: 12px 6px;
       border: 1px solid var(--border);
       background: white;
       border-radius: 6px;
       cursor: pointer;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 500;
       color: var(--text);
       transition: all 0.15s;
       text-align: center;
+      min-height: 56px;
     }
     .mode-btn:hover { border-color: var(--primary); }
     .mode-btn.active {
@@ -163,7 +249,11 @@
       color: white;
       border-color: var(--primary);
     }
-    .mode-icon { font-size: 14px; display: block; margin-bottom: 2px; }
+    .mode-icon { font-size: 18px; display: block; margin-bottom: 2px; }
+    @media (min-width: 900px) {
+      .mode-btn { padding: 8px 4px; font-size: 11px; min-height: 0; }
+      .mode-icon { font-size: 14px; }
+    }
 
     .calc-btn {
       width: 100%;
@@ -184,14 +274,16 @@
       cursor: not-allowed;
     }
 
-    .summary { position: sticky; top: 10px; }
+    .summary { position: sticky; top: 60px; }
+    @media (min-width: 900px) { .summary { top: 14px; } }
     .summary-row {
       display: flex;
       justify-content: space-between;
-      padding: 5px 0;
-      font-size: 12px;
+      padding: 7px 0;
+      font-size: 13px;
       border-bottom: 1px dashed var(--border);
     }
+    @media (min-width: 900px) { .summary-row { padding: 5px 0; font-size: 12px; } }
     .summary-row:last-child { border-bottom: none; }
     .summary-row .label { color: var(--muted); }
     .summary-row .value { font-weight: 500; text-align: right; max-width: 60%; }
@@ -397,21 +489,29 @@
       background: rgba(15, 23, 42, 0.55);
       z-index: 1000;
       display: none;
-      align-items: flex-start;
+      align-items: stretch;
       justify-content: center;
-      padding: 40px 16px 16px;
+      padding: 0;
       overflow-y: auto;
     }
     .modal-bg.show { display: flex; }
     .modal {
       background: white;
-      border-radius: 10px;
-      max-width: 720px;
+      border-radius: 0;
+      max-width: 100%;
       width: 100%;
-      max-height: calc(100vh - 56px);
+      max-height: 100vh;
       display: flex; flex-direction: column;
       overflow: hidden;
       box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+    }
+    @media (min-width: 900px) {
+      .modal-bg { padding: 40px 16px 16px; align-items: flex-start; }
+      .modal { max-width: 720px; max-height: calc(100vh - 56px); border-radius: 10px; }
+    }
+    .modal-close { width: 36px; height: 36px; }
+    @media (min-width: 900px) {
+      .modal-close { width: 26px; height: 26px; }
     }
     .modal-head {
       display: flex; align-items: center; justify-content: space-between;
@@ -449,14 +549,19 @@
     }
     .filter-chips { display: flex; gap: 6px; flex-wrap: wrap; }
     .chip {
-      padding: 4px 10px;
+      padding: 8px 14px;
       border: 1px solid var(--border);
       background: white;
-      border-radius: 14px;
-      font-size: 11px;
+      border-radius: 16px;
+      font-size: 13px;
       cursor: pointer;
       color: var(--text);
       white-space: nowrap;
+      min-height: 36px;
+      display: inline-flex; align-items: center;
+    }
+    @media (min-width: 900px) {
+      .chip { padding: 4px 10px; font-size: 11px; min-height: 0; }
     }
     .chip:hover { border-color: var(--primary); }
     .chip.active {
@@ -809,6 +914,27 @@
   <script src="prices-db.js"></script>
 </head>
 <body>
+  <!-- Mobile sticky bottom bar -->
+  <div class="mobile-bar" id="mobileBar">
+    <div class="mb-total">
+      <span class="mb-label">Tổng chi phí</span>
+      <span class="mb-amount" id="mbAmount">— ₫</span>
+    </div>
+    <button class="mb-summary-btn" id="mbSummaryBtn" type="button">📋</button>
+    <button class="mb-calc-btn" id="mbCalcBtn" type="button">Tính</button>
+  </div>
+
+  <!-- MODAL: Tóm tắt (mobile quick view) -->
+  <div class="modal-bg" id="summaryModal">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>📋 Tóm tắt lựa chọn</h3>
+        <button class="modal-close" data-close-modal="summaryModal" type="button">✕</button>
+      </div>
+      <div class="modal-list" id="summaryModalBody" style="padding: 14px"></div>
+    </div>
+  </div>
+
   <header>
     <h1>TAH Minerals — Tính toán chi phí dự kiến theo hợp đồng</h1>
   </header>
@@ -821,7 +947,7 @@
         <h2>Thông tin hợp đồng</h2>
 
         <!-- 0. USE CASE -->
-        <div class="section">
+        <div class="section collapsible">
           <div class="section-title">0. Mục đích sử dụng (tuỳ chọn)</div>
           <div class="field">
             <select id="useCase">
@@ -832,7 +958,7 @@
         </div>
 
         <!-- 1. MATERIAL -->
-        <div class="section">
+        <div class="section collapsible">
           <div class="section-title">1. Loại vật liệu</div>
           <div class="row">
             <div class="field">
@@ -868,7 +994,7 @@
         </div>
 
         <!-- 2. TRANSPORT -->
-        <div class="section">
+        <div class="section collapsible">
           <div class="section-title">2. Vận chuyển — Chặng 1 (chính)</div>
           <div class="transport-modes">
             <div class="mode-btn" data-mode="land">
@@ -931,7 +1057,7 @@
         </div>
 
         <!-- 3. ADDITIONAL LEGS -->
-        <div class="section">
+        <div class="section collapsible">
           <div class="section-title">3. Chặng vận chuyển bổ sung (đa chặng)</div>
           <div id="legsContainer">
             <div class="leg-empty">Chưa có chặng phụ. Thêm khi cần đa chặng (VD: mỏ → cảng → công trình).</div>
@@ -953,7 +1079,7 @@
           <button class="compare-btn" id="compareProvincesBtn" type="button" title="So sánh giá 34 tỉnh">📊 So sánh</button>
         </div>
 
-        <div class="section">
+        <div class="section collapsible">
           <div class="section-title">A. Chi phí tại mỏ &amp; bốc xếp <span class="region-badge" id="regionBadge" style="display:none"></span></div>
           <div class="field">
             <label for="minePrice">Đơn giá tại mỏ</label>
@@ -977,7 +1103,7 @@
           </div>
         </div>
 
-        <div class="section">
+        <div class="section collapsible">
           <div class="section-title">B. Vận chuyển</div>
           <div class="field">
             <label for="transportRate">Cước vận chuyển</label>
@@ -998,7 +1124,7 @@
           </div>
         </div>
 
-        <div class="section">
+        <div class="section collapsible">
           <div class="section-title">C. Thuế &amp; phí</div>
           <div class="row">
             <div class="field">
@@ -1028,7 +1154,7 @@
           </div>
         </div>
 
-        <div class="section">
+        <div class="section collapsible">
           <div class="section-title">D. Hoa hồng, hao hụt &amp; lợi nhuận</div>
           <div class="row-3">
             <div class="field">
@@ -2968,6 +3094,48 @@
       }
       renderCompareTable();
       $('compareModal').classList.add('show');
+    });
+
+    // ===== ACCORDION: collapse all but first on mobile =====
+    (function initAccordion() {
+      const isMobile = window.matchMedia('(max-width: 899px)').matches;
+      document.querySelectorAll('.section.collapsible').forEach((sec, idx) => {
+        const title = sec.querySelector('.section-title');
+        if (!title) return;
+        // Mobile: collapse all sections by default except the first one in each card
+        if (isMobile) {
+          const cardSections = sec.parentElement.querySelectorAll(':scope > .section.collapsible');
+          if (cardSections[0] !== sec) sec.classList.add('collapsed');
+        }
+        title.addEventListener('click', (e) => {
+          // Tránh click trên control con (input, select, button) bị toggle
+          if (e.target.closest('input,select,button,a,.region-badge')) return;
+          sec.classList.toggle('collapsed');
+        });
+      });
+    })();
+
+    // ===== MOBILE BOTTOM BAR =====
+    (function initMobileBar() {
+      $('mbCalcBtn').addEventListener('click', () => $('calcBtn').click());
+      $('mbSummaryBtn').addEventListener('click', () => {
+        // Clone summary content into modal
+        const sm = $('summaryModalBody');
+        const summaryCard = document.querySelector('.summary');
+        if (summaryCard) sm.innerHTML = summaryCard.innerHTML;
+        $('summaryModal').classList.add('show');
+      });
+      // Update amount from total whenever it changes
+      const total = $('total');
+      const obs = new MutationObserver(() => {
+        $('mbAmount').textContent = total.textContent || '— ₫';
+      });
+      obs.observe(total, { childList: true, characterData: true, subtree: true });
+    })();
+
+    // ===== INPUTMODE for numeric inputs =====
+    document.querySelectorAll('input[type="number"]').forEach(el => {
+      el.setAttribute('inputmode', 'decimal');
     });
 
     refreshSummary();
