@@ -303,12 +303,11 @@
     .input-prefix.long input { padding-right: 78px; }
 
     /* Cost field with regional reference dropdown */
-    .cost-row { display: flex; gap: 6px; align-items: stretch; }
-    .cost-row .input-prefix { flex: 1; min-width: 0; }
+    .cost-row { display: flex; flex-direction: column; gap: 4px; }
+    .cost-row .input-prefix { width: 100%; min-width: 0; }
     .ref-dropdown {
-      flex: 0 0 auto;
-      width: 150px;
-      padding: 6px 6px;
+      width: 100%;
+      padding: 5px 8px;
       border: 1px solid var(--border);
       border-radius: 6px;
       font-size: 11px;
@@ -318,10 +317,6 @@
     }
     .ref-dropdown:hover { border-color: var(--primary); }
     .ref-dropdown option { color: var(--text); font-size: 12px; }
-    @media (max-width: 480px) {
-      .cost-row { flex-direction: column; }
-      .ref-dropdown { width: 100%; }
-    }
     .region-badge {
       display: inline-block;
       padding: 2px 8px;
