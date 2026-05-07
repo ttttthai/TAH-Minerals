@@ -1086,7 +1086,18 @@
 
         <div class="section">
           <div class="section-title">B. Vận chuyển</div>
-          <div class="hint" style="margin-bottom:8px">📊 <b>Đơn giá đã hiệu chỉnh theo data thị trường công khai</b>: Tạp chí Xây dựng, Tuổi Trẻ, VnEconomy (sà lan An Giang↔HCM 373 đ/m³/km), proship.vn (cont 40' Bắc-Nam ~530 đ/m³/km), vlxdhiepha.com, vantailuule.vn, ssslog.com.vn, QĐ 16/2014 UBND Phú Thọ, TT 12/2021/TT-BXD. Tuy nhiên rate biến động theo cự ly và mùa vụ — vui lòng verify với báo giá đối tác cho dự án cụ thể.</div>
+          <div class="hint" style="margin-bottom:8px">📊 <b>Đơn giá đã hiệu chỉnh theo data thị trường công khai</b>. <b>Nguồn cập nhật cước biển/sông VN:</b>
+            <a href="https://www.vinamarine.gov.vn/vi/thong-ke" target="_blank" rel="noopener">Cục Hàng hải</a> ·
+            <a href="https://www.vinaship.com.vn/" target="_blank" rel="noopener">Vinaship</a> ·
+            <a href="https://www.vosco.vn/" target="_blank" rel="noopener">Vosco</a> ·
+            <a href="https://haianlines.vn/" target="_blank" rel="noopener">Hải An</a> ·
+            <a href="https://vimc.co/" target="_blank" rel="noopener">VIMC/Vinalines</a> ·
+            <a href="https://proship.vn/en/bulletin/transportation-container-shipping-price-list-north-to-south-vietnam/" target="_blank" rel="noopener">Proship rate card</a> ·
+            <a href="https://ratracosolutions.com/n/gia-cuoc-van-tai-duong-thuy-noi-dia/" target="_blank" rel="noopener">Ratraco (đường thuỷ nội địa)</a> ·
+            <a href="https://eimskip.vn/cuoc-van-tai-bien" target="_blank" rel="noopener">Eimskip 2026</a> ·
+            <a href="https://phaata.com/" target="_blank" rel="noopener">Phaata B2B</a>.
+            Rate biến động theo cự ly và mùa vụ — vui lòng verify với báo giá đối tác cho dự án cụ thể.
+          </div>
           <div class="field">
             <label for="transportRate">Cước vận chuyển</label>
             <div class="cost-row">
@@ -3215,7 +3226,7 @@
   <div class="modal-bg" id="projectModal">
     <div class="modal">
       <div class="modal-head">
-        <h3>🏗️ Chọn dự án (Vingroup / Sungroup / Coteccons — 131 dự án)</h3>
+        <h3>🏗️ Chọn dự án / cảng (Vingroup / Sungroup / Coteccons / Cảng — 132 mục)</h3>
         <button class="modal-close" data-close-modal="projectModal" type="button">✕</button>
       </div>
       <div class="modal-filters">
@@ -3224,6 +3235,7 @@
           <span class="chip active" data-group="">Tất cả</span>
           <span class="chip" data-group="vingroup">Vingroup</span>
           <span class="chip" data-group="coteccons">Coteccons (CTD)</span>
+          <span class="chip" data-group="infrastructure">Cảng / Hạ tầng</span>
           <span class="chip" data-group="sungroup">Sungroup</span>
         </div>
         <div class="filter-chips" id="projectStatusChips">
@@ -3409,7 +3421,7 @@
         <div class="mine-card" data-id="${p.id}">
           <div class="top">
             <div class="name">${p.name}</div>
-            <span class="badge">${({vingroup:'Vingroup',sungroup:'Sungroup',coteccons:'Coteccons'})[p.group]||p.group} · ${statusLabel[p.status]||p.status}</span>
+            <span class="badge">${({vingroup:'Vingroup',sungroup:'Sungroup',coteccons:'Coteccons',infrastructure:'Cảng/Hạ tầng'})[p.group]||p.group} · ${statusLabel[p.status]||p.status}</span>
           </div>
           <div class="meta">
             ${p.district || '?'}, ${p.province || '?'} · ${p.type || ''} ${p.scale ? '· ' + p.scale : ''} ${p.phase ? '· ' + p.phase : ''}
